@@ -282,7 +282,7 @@
 
 <script>
   const CART_KEY = 'mulivelivek_cart';
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzlM-8Ji90gRjwa_LGEtqS7K72RoOVL9Puge-CqI1KbJ7sG8vvKn2h9jEzes7pk5WBG/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzQqkBXPD2AWqsSD_1JwXdMsGtP66IjCNpWbyepfD9WntMaApN4vPDNqSshAC-W5ISX/exec';
 
   function getCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -294,26 +294,41 @@
 
   // 1. 組訂單資料，準備送給 Google Script
   function buildOrderData(pickupMethod) {
-    const cart = getCart();
-    const itemsString = cart
-      .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
-      .join('；');
+  const cart = getCart();
 
-    const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
+  //尺寸統計
+  const sizeCounts = { M: 0, L: 0, XL: 0, '2XL': 0, '3XL': 0 };
+  cart.forEach(i => {
+    if (sizeCounts[i.size] != null) {
+      sizeCounts[i.size] += i.qty;
+    }
+  });
 
-    return {
-      formName: 'Mulivelivek初鹿部落祭典商品',
-      name: sessionStorage.getItem('mulive_name') || '',
-      phone: sessionStorage.getItem('mulive_phone') || '',
-      last5: sessionStorage.getItem('mulive_last5') || '',
-      note: sessionStorage.getItem('mulive_note') || '',
-      items: itemsString,
-      total: total,
-      pickupMethod: pickupMethod || '',
-      createdAt: new Date().toISOString()
-    };
-  }
+  const itemsString = cart
+    .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
+    .join('；');
 
+  const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
+
+  return {
+    formName: 'Mulivelivek初鹿部落祭典商品',
+    name: sessionStorage.getItem('mulive_name') || '',
+    phone: sessionStorage.getItem('mulive_phone') || '',
+    last5: sessionStorage.getItem('mulive_last5') || '',
+    note: sessionStorage.getItem('mulive_note') || '',
+    items: itemsString,
+    total: total,
+    pickupMethod: pickupMethod || '',
+    createdAt: new Date().toISOString(),
+
+    // 對應表格欄位
+    sizeM: sizeCounts['M'],
+    sizeL: sizeCounts['L'],
+    sizeXL: sizeCounts['XL'],
+    size2XL: sizeCounts['2XL'],
+    size3XL: sizeCounts['3XL']
+  };
+}
   // 2. 送資料到 Google Apps Script Web App
   //   👉 這裡「不要設定任何 headers」就不會觸發 preflight
   function sendOrderToSheet(orderData) {
