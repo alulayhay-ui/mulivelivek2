@@ -435,6 +435,7 @@
 </head>
 <body>
   <div id="top"></div>
+  <!-- 下面才是你的首頁內容 wrapper / hero / 介紹... -->
   <!-- 導覽列 -->
   <header class="nav">
     <div class="nav-inner">
@@ -568,5 +569,39 @@
   <footer>
     © 2025 Mulivelivek · 初鹿部落年祭限定周邊預購頁
   </footer>
+        <!-- 你的首頁內容結束 -->
+
+  <!-- 強制手機 / 瀏覽器每次進首頁都回到最上面 -->
+  <script>
+    (function() {
+      // 1. 不讓瀏覽器自己記住捲動位置
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+
+      function forceScrollTop() {
+        // 先把網址裡可能殘留的 hash 拿掉（例如 index.html#size）
+        if (location.hash && location.hash !== '#top') {
+          history.replaceState(null, '', location.pathname + location.search + '#top');
+        }
+        // 強制捲回頂端
+        window.scrollTo(0, 0);
+      }
+
+      // 首次載入
+      window.addEventListener('load', function () {
+        setTimeout(forceScrollTop, 0);
+      });
+
+      // 從瀏覽器返回（bfcache）時也再捲一次
+      window.addEventListener('pageshow', function (e) {
+        if (e.persisted) {
+          setTimeout(forceScrollTop, 0);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
 </body>
 </html>
