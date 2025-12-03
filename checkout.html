@@ -291,24 +291,66 @@
   function clearCart() {
     localStorage.removeItem(CART_KEY);
   }
- // 把前端的訂單資料組成一個物件，準備送到 Google Sheet
+
+  // 把前端的訂單資料組成一個物件，準備送到 Google Sheet
+  // 同時統計各尺寸（M / L / XL / 2XL / 3XL）的件數
   function buildOrderData(pickupMethod) {
     const cart = getCart();
+
+    // 1. 統計各尺寸件數
+    const sizeCount = {
+      M: 0,
+      L: 0,
+      XL: 0,
+      '2XL': 0,
+      '3XL': 0
+    };
+
+    cart.forEach(item => {
+      const q = Number(item.qty) || 0;
+      if (sizeCount.hasOwnProperty(item.size)) {
+        sizeCount[item.size] += q;
+      }
+    });
+
+    // 2. 商品清單文字（如果未來要看明細用）
     const itemsString = cart
       .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
       .join('；');
 
+    // 3. 計算總金額（只算衣服，不含運費）
     const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
 
+    // 4. 從第一步拿到的資料
+    const name  = sessionStorage.getItem('mulive_name') || '';
+    const phone = sessionStorage.getItem('mulive_phone') || '';
+    const last5 = sessionStorage.getItem('mulive_last5') || '';
+    const note  = sessionStorage.getItem('mulive_note')  || '';
+
+    const methodText = pickupMethod || '';
+
+    // 5. 回傳給 Apps Script 的資料
+    // 記得在 Apps Script 那邊用 data.mQty / data.lQty ... 等欄位對應
     return {
       formName: 'Mulivelivek初鹿部落祭典商品',
-      name: sessionStorage.getItem('mulive_name') || '',
-      phone: sessionStorage.getItem('mulive_phone') || '',
-      last5: sessionStorage.getItem('mulive_last5') || '',
-      note: sessionStorage.getItem('mulive_note') || '',
-      items: itemsString,
-      total: total,
-      pickupMethod: pickupMethod || '',
+
+      name:  name,
+      phone: phone,
+
+      method: methodText,        // 取貨方式（巴拉冠自取 / 7-11 店到店）
+      pickupMethod: methodText,  // 同一內容，多給一個欄位以防後端還在用舊名字
+
+      mQty:   sizeCount.M,       // M 件數
+      lQty:   sizeCount.L,       // L 件數
+      xlQty:  sizeCount.XL,      // XL 件數
+      x2lQty: sizeCount['2XL'],  // 2XL 件數
+      x3lQty: sizeCount['3XL'],  // 3XL 件數
+
+      total: total,              // 總金額
+      last5: last5,              // 匯款後五碼
+      note:  note,               // 備註（想對我們說的話）
+
+      items: itemsString,        // 純文字商品清單
       createdAt: new Date().toISOString()
     };
   }
@@ -328,6 +370,7 @@
       console.error('送出到試算表失敗', err);
     });
   }
+
   let currentStep = 1;
   const TOTAL_STEPS = 2;
   const stepCard = document.getElementById('step-card');
@@ -397,7 +440,7 @@
       stepIndicator.textContent = `Step ${currentStep} / ${TOTAL_STEPS}`;
     }
 
-       if (currentStep === 1) {
+    if (currentStep === 1) {
       stepCard.innerHTML = `
         <div id="summary-card" class="summary-card"></div>
 
@@ -468,10 +511,9 @@
         </div>
       `;
 
-   // 巴拉冠自取
+      // 巴拉冠自取
       document.getElementById('btn-pickup').addEventListener('click', () => {
         const orderData = buildOrderData('巴拉冠自取');
-        // 不等它回應，先丟給後台去寫表
         sendOrderToSheet(orderData);
 
         showLoading('建立訂單中…');
@@ -484,7 +526,7 @@
             <div class="success-text">
               感謝你的訂購！<br/>
               我們已收到你的訂單與匯款資訊，<br/>
-              確認收到款項後會用簡訊通知！，<br/>
+              確認收到款項後會用簡訊通知！<br/>
               請耐心等待衣服的到來，<br/>
               巴拉冠自取相關時間，將再另外通知你。🌾
             </div>
