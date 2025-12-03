@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mulivelivek ｜ 年祭限定水洗長袖預購首頁</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{
+      --bg:#f7f3ec;
+      --bg-soft:#fffdf8;
+      --card:#ffffff;
+      --border:#e3ddcf;
+      --accent:#c58543;
+      --accent-dark:#92572a;
+      --text:#2f2415;
+      --muted:#7b6d5a;
+    }
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    body{
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+
+    /* NAV */
+    .nav{
+      position:sticky;
+      top:0;
+      z-index:20;
+      backdrop-filter:blur(12px);
+      background:rgba(247,243,236,.92);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-inner{
+      max-width:1120px;
+      margin:0 auto;
+      padding:10px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .nav-logo{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-weight:700;
+      letter-spacing:.1em;
+      font-size:14px;
+    }
+    .nav-logo-mark{
+      width:24px;
+      height:24px;
+      border-radius:999px;
+      border:2px solid var(--accent);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+    }
+    .nav-links{
+      display:flex;
+      gap:12px;
+      font-size:13px;
+    }
+    .nav-links a{
+      text-decoration:none;
+      color:var(--muted);
+      padding:4px 8px;
+      border-radius:999px;
+      transition:.2s;
+    }
+    .nav-links a:hover{
+      background:var(--card);
+      color:var(--accent-dark);
+    }
+
+    /* HERO */
+    .hero{
+      max-width:1120px;
+      margin:0 auto;
+      padding:32px 16px 24px;
+      display:grid;
+      grid-template-columns:minmax(0,3fr) minmax(0,2.5fr);
+      gap:32px;
+      align-items:center;
+    }
+    .hero-eyebrow{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+    .hero-title{
+      font-size:30px;
+      line-height:1.25;
+      margin:0 0 12px;
+    }
+    .hero-sub{
+      font-size:14px;
+      color:var(--muted);
+      margin-bottom:18px;
+    }
+    .hero-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:var(--bg-soft);
+      border:1px dashed var(--border);
+      font-size:11px;
+      color:var(--accent-dark);
+      margin-bottom:16px;
+    }
+    .hero-badge span{
+      font-size:10px;
+    }
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .btn-primary{
+      border:none;
+      outline:none;
+      cursor:pointer;
+      padding:10px 20px;
+      border-radius:999px;
+      background:var(--accent);
+      color:#fff;
+      font-size:14px;
+      font-weight:600;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      text-decoration:none;
+      transition:.18s;
+    }
+    .btn-primary:hover{
+      background:var(--accent-dark);
+      transform:translateY(-1px);
+    }
+    .btn-ghost{
+      border-radius:999px;
+      padding:9px 16px;
+      border:1px solid var(--border);
+      background:transparent;
+      color:var(--muted);
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      cursor:pointer;
+      text-decoration:none;
+      transition:.18s;
+    }
+    .btn-ghost:hover{
+      background:var(--card);
+      color:var(--accent-dark);
+    }
+    .hero-notice{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .hero-gallery{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      background:var(--bg-soft);
+      padding:14px;
+      border-radius:18px;
+      border:1px solid var(--border);
+    }
+    .hero-img-wrap{
+      background:#d8d3c8;
+      border-radius:14px;
+      overflow:hidden;
+      position:relative;
+      aspect-ratio:4/3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .hero-img-wrap img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .hero-tag{
+      position:absolute;
+      left:10px;
+      bottom:10px;
+      padding:3px 7px;
+      border-radius:999px;
+      font-size:10px;
+      background:rgba(0,0,0,.45);
+      color:#fff;
+    }
+
+    /* PRODUCT LIST SECTION */
+    .section{
+      max-width:1120px;
+      margin:0 auto;
+      padding:8px 16px 40px;
+    }
+    .section-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    .section-title{
+      font-size:18px;
+      margin:0;
+    }
+    .section-sub{
+      font-size:13px;
+      color:var(--muted);
+    }
+    .product-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:16px;
+    }
+    .product-card{
+      background:var(--card);
+      border-radius:18px;
+      border:1px solid var(--border);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .product-thumb{
+      border-radius:14px;
+      overflow:hidden;
+      background:#d8d3c8;
+      aspect-ratio:4/3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .product-thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .product-info-top{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:flex-start;
+    }
+    .product-name{
+      font-size:14px;
+      font-weight:600;
+      line-height:1.4;
+    }
+    .product-price{
+      font-size:14px;
+      font-weight:700;
+    }
+    .product-meta{
+      font-size:11px;
+      color:var(--muted);
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .pill{
+      padding:3px 8px;
+      border-radius:999px;
+      background:var(--bg-soft);
+      border:1px solid var(--border);
+    }
+    .product-footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-top:4px;
+    }
+    .sizes{
+      font-size:11px;
+      color:var(--muted);
+    }
+    .sizes span{
+      font-weight:600;
+      color:var(--text);
+    }
+    .btn-mini{
+      border:none;
+      border-radius:999px;
+      padding:7px 14px;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      background:var(--accent);
+      color:#fff;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .btn-mini:hover{
+      background:var(--accent-dark);
+    }
+
+    /* ORDER INFO */
+    .order-info{
+      margin-top:24px;
+      padding:16px;
+      border-radius:16px;
+      border:1px dashed var(--border);
+      background:var(--bg-soft);
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.6;
+    }
+    .order-info strong{color:var(--accent-dark);}
+    .order-list{
+      padding-left:20px;
+      margin:6px 0 0;
+    }
+
+    /* FOOTER */
+    footer{
+      margin-top:auto;
+      border-top:1px solid var(--border);
+      padding:12px 16px 18px;
+      font-size:11px;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    @media(max-width:768px){
+      .hero{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 導覽列 -->
+  <header class="nav">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <div class="nav-logo-mark">M</div>
+        <span>MULIVELIVEK</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#products">商品列表</a>
+        <a href="#order">如何預購</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO 區 -->
+  <main>
+    <section class="hero">
+      <div>
+        <div class="hero-eyebrow">2025 Chu-lu Harvest Festival</div>
+        <h1 class="hero-title">初鹿部落年祭限定水洗長袖</h1>
+        <p class="hero-sub">
+          將今年年祭的記憶穿在身上。復古水洗灰搭配粉色字體，一件就能完成日常穿搭，也是一份帶回部落的紀念。
+        </p>
+        <div class="hero-badge">
+          <span>✦</span> 年祭限定 ｜ 數量有限，售完不補
+        </div>
+        <div class="hero-actions">
+          <!-- 把 href 換成你真正的商品頁網址 -->
+          <a href="product.html" class="btn-primary">
+            立即預購
+            <span>→</span>
+          </a>
+          <a href="#order" class="btn-ghost">
+            看訂購方式
+          </a>
+        </div>
+        <div class="hero-notice">
+          預購價格 NT$450 ｜ 出貨時間依粉專公告與簡訊為主。
+        </div>
+      </div>
+
+      <div class="hero-gallery">
+        <!-- 這四張圖自己換成實際檔案路徑 -->
+        <div class="hero-img-wrap">
+          <img src="img/front-1.jpg" alt="年祭長袖 正面">
+          <div class="hero-tag">正面</div>
+        </div>
+        <div class="hero-img-wrap">
+          <img src="img/back-1.jpg" alt="年祭長袖 背面">
+          <div class="hero-tag">背面</div>
+        </div>
+        <div class="hero-img-wrap">
+          <img src="img/front-2.jpg" alt="年祭長袖 正面近拍">
+          <div class="hero-tag">LOGO 近拍</div>
+        </div>
+        <div class="hero-img-wrap">
+          <img src="img/back-2.jpg" alt="年祭長袖 背面近拍">
+          <div class="hero-tag">圖像細節</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 商品列表 -->
+    <section class="section" id="products">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">本次預購商品</h2>
+          <p class="section-sub">目前開放一款長袖。之後若有帽T、短 Tee 也可以直接加在下面。</p>
+        </div>
+      </div>
+
+      <div class="product-grid">
+        <!-- 商品卡片 1 -->
+        <article class="product-card">
+          <div class="product-thumb">
+            <img src="img/product-main.jpg"
+                 alt="初鹿部落年祭限定水洗長袖 MULIVELIVEK">
+          </div>
+          <div class="product-info-top">
+            <div class="product-name">
+              初鹿部落年祭限定水洗長袖｜<br>MULIVELIVEK 限定款
+            </div>
+            <div class="product-price">NT$ 450</div>
+          </div>
+          <div class="product-meta">
+            <span class="pill">水洗灰</span>
+            <span class="pill">粉色字體</span>
+            <span class="pill">落肩寬鬆版型</span>
+          </div>
+          <div class="product-footer">
+            <div class="sizes">
+              尺寸：<span>M / L / XL / 2XL / 3XL</span>
+            </div>
+            <!-- 一樣把 href 換成你的商品頁網址 -->
+            <a href="product.html" class="btn-mini">
+              詳細尺寸 &amp; 下單
+            </a>
+          </div>
+        </article>
+      </div>
+
+      <!-- 訂購說明 -->
+      <div class="order-info" id="order">
+        <strong>預購與付款方式</strong>
+        <ul class="order-list">
+          <li>請點上方「詳細尺寸 &amp; 下單」進入商品頁，選擇 <strong>尺寸 / 數量</strong> 後加入購物車。</li>
+          <li>填寫收件人姓名、電話、地址或自取資訊，確認訂單內容。</li>
+          <li>付款方式：匯款 / ATM 轉帳（帳號將於完成訂單後顯示或以簡訊通知）。</li>
+          <li>確認款項後，將統一安排製作與出貨，相關時間以粉專公告為主。</li>
+        </ul>
+        <p style="margin-top:10px;">
+          如有大宗訂購或尺寸問題，歡迎私訊
+          <strong>Mulivelivek 粉絲專頁 / IG</strong> 詢問。
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 Mulivelivek · 初鹿部落年祭限定周邊預購頁
+  </footer>
+</body>
+</html>
