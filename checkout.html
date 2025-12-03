@@ -103,7 +103,7 @@
       border-radius:12px;
       padding:12px;
       font-size:13px;
-      margin-bottom:10px;
+      margin:12px 0 6px;
     }
     .remit-box strong{display:block;margin-bottom:4px;}
     .step-indicator{
@@ -116,6 +116,91 @@
       line-height:1.7;
       text-align:center;
       padding:20px 6px 10px;
+    }
+
+    /* 訂單摘要卡片 */
+    .summary-card{
+      background:#f7f3ec;
+      border-radius:14px;
+      padding:10px 12px 12px;
+      margin:-4px 0 14px;
+      font-size:13px;
+    }
+    .summary-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:6px;
+      font-weight:600;
+    }
+    .summary-items{
+      border-top:1px solid #e3ddcf;
+      border-bottom:1px solid #e3ddcf;
+      padding:8px 0 6px;
+      margin-bottom:8px;
+    }
+    .summary-item{
+      display:flex;
+      align-items:flex-start;
+      gap:8px;
+      margin-bottom:6px;
+    }
+    .summary-thumb{
+      width:40px;
+      height:40px;
+      border-radius:8px;
+      background:#fff;
+      overflow:hidden;
+      flex-shrink:0;
+    }
+    .summary-thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .summary-main{
+      flex:1;
+    }
+    .summary-name{
+      font-size:13px;
+      margin-bottom:2px;
+    }
+    .summary-meta{
+      font-size:12px;
+      color:#7b6d5a;
+    }
+    .summary-price{
+      font-size:13px;
+      white-space:nowrap;
+      margin-left:6px;
+    }
+    .summary-qty-dot{
+      width:18px;
+      height:18px;
+      border-radius:999px;
+      background:#2f2415;
+      color:#fff;
+      font-size:11px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-right:2px;
+    }
+    .summary-line{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:13px;
+      margin-top:2px;
+    }
+    .summary-total-line{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:4px;
+      font-size:16px;
+      font-weight:700;
     }
 
     /* 右下浮動購物車按鈕（在這頁當「回購物車」用） */
@@ -176,6 +261,7 @@
   <!-- 左上：回首頁 / 返回上一頁 -->
   <div class="top-buttons">
     <a href="index.html" class="top-btn">← 回到首頁</a>
+    <button type="button" class="top-btn" onclick="history.back()">⟵ 返回上一頁</button>
   </div>
 
   <!-- 右下：回購物車 -->
@@ -191,7 +277,7 @@
 
   <div class="wrap">
     <h1>結帳</h1>
-    <div id="step-indicator" class="step-indicator">Step 1 / 3</div>
+    <div id="step-indicator" class="step-indicator">Step 1 / 2</div>
     <div class="step-card" id="step-card"></div>
   </div>
 
@@ -207,6 +293,7 @@
   }
 
   let currentStep = 1;
+  const TOTAL_STEPS = 2;
   const stepCard = document.getElementById('step-card');
   const stepIndicator = document.getElementById('step-indicator');
   const loadingOverlay = document.getElementById('loading-overlay');
@@ -225,39 +312,71 @@
     window.location.href = 'product.html';
   }
 
-  function renderStep() {
-    stepIndicator.textContent = `Step ${currentStep} / 3`;
+  // 產生訂單摘要內容（無運費）
+  function renderOrderSummary(){
+    const card = document.getElementById('summary-card');
+    if (!card) return;
 
-    if (currentStep === 1) {
-      stepCard.innerHTML = `
-        <div class="step-title">填寫聯絡資料</div>
-        <div class="step-desc">請留下你的姓名與聯絡電話，以便我們之後通知取貨與出貨資訊。</div>
-        <label for="name">姓名</label>
-        <input id="name" type="text" placeholder="例：鄭彥軍" />
-        <label for="phone">電話</label>
-        <input id="phone" type="tel" placeholder="例：0910-558-302" />
-        <div class="btn-row">
-          <button class="btn btn-ghost" onclick="window.location.href='cart.html'">← 返回購物車</button>
-          <button class="btn btn-primary" id="next-1">下一步</button>
+    const cart = getCart();
+    let total = 0;
+    let itemsHtml = '';
+
+    cart.forEach((item) => {
+      const subtotal = (item.price || 0) * (item.qty || 0);
+      total += subtotal;
+      itemsHtml += `
+        <div class="summary-item">
+          <div class="summary-thumb">
+            <img src="assets/pic/效果图 (1).png" alt="商品預覽">
+          </div>
+          <div class="summary-main">
+            <div class="summary-name">${item.name || ''}</div>
+            <div class="summary-meta">${item.size || ''}，${item.color || ''}</div>
+          </div>
+          <div class="summary-price">NT$ ${subtotal}</div>
         </div>
       `;
-      document.getElementById('next-1').addEventListener('click', () => {
-        const name = document.getElementById('name').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        if (!name || !phone) {
-          alert('請填寫姓名與電話 🙏');
-          return;
-        }
-        sessionStorage.setItem('mulive_name', name);
-        sessionStorage.setItem('mulive_phone', phone);
-        currentStep = 2;
-        renderStep();
-      });
+    });
 
-    } else if (currentStep === 2) {
+    card.innerHTML = `
+      <div class="summary-header">
+        <span>訂單摘要</span>
+      </div>
+      <div class="summary-items">
+        ${itemsHtml}
+      </div>
+      <div class="summary-line">
+        <span>合計</span>
+        <span>NT$ ${total}</span>
+      </div>
+      <div class="summary-total-line">
+        <span>總金額</span>
+        <span>NT$ ${total}</span>
+      </div>
+    `;
+  }
+
+  function renderStep() {
+    if (currentStep <= TOTAL_STEPS) {
+      stepIndicator.textContent = `Step ${currentStep} / ${TOTAL_STEPS}`;
+    }
+
+    if (currentStep === 1) {
+      // Step1：訂單摘要 + 聯絡資料 + 匯款資訊（合併）
       stepCard.innerHTML = `
-        <div class="step-title">匯款資訊</div>
-        <div class="step-desc">請完成匯款後，在下方填寫匯款帳號後五碼，方便我們對帳。</div>
+        <div id="summary-card" class="summary-card"></div>
+
+        <div class="step-title">訂購人資訊 & 匯款資料</div>
+        <div class="step-desc">
+          請確認下方訂單內容，並填寫你的姓名、電話與匯款帳號後五碼，方便我們聯絡與對帳。
+        </div>
+
+        <label for="name">姓名</label>
+        <input id="name" type="text" placeholder="例：鄭彥軍" />
+
+        <label for="phone">電話</label>
+        <input id="phone" type="tel" placeholder="例：0910-558-302" />
+
         <div class="remit-box">
           <strong>💰 匯款資訊</strong>
           初鹿青年會帳戶<br/>
@@ -265,30 +384,38 @@
           帳號：88680977418900<br/>
           <span style="display:block;margin-top:6px;">（有族人想贊助也是匯這裡~~）</span>
         </div>
+
         <label for="last5">匯款帳號後五碼</label>
         <input id="last5" type="text" maxlength="5" placeholder="例：12345" />
+
         <div class="btn-row">
-          <button class="btn btn-ghost" id="back-2">← 上一步</button>
-          <button class="btn btn-primary" id="next-2">下一步</button>
+          <button class="btn btn-ghost" onclick="window.location.href='cart.html'">← 返回購物車</button>
+          <button class="btn btn-primary" id="next-1">下一步</button>
         </div>
       `;
-      document.getElementById('back-2').addEventListener('click', () => {
-        currentStep = 1;
-        renderStep();
-      });
-      document.getElementById('next-2').addEventListener('click', () => {
+
+      renderOrderSummary();
+
+      document.getElementById('next-1').addEventListener('click', () => {
+        const name = document.getElementById('name').value.trim();
+        const phone = document.getElementById('phone').value.trim();
         const last5 = document.getElementById('last5').value.trim();
-        if (!last5) {
-          alert('請填寫匯款後五碼 🙏');
+
+        if (!name || !phone || !last5) {
+          alert('請填寫姓名、電話與匯款後五碼 🙏');
           return;
         }
+        sessionStorage.setItem('mulive_name', name);
+        sessionStorage.setItem('mulive_phone', phone);
         sessionStorage.setItem('mulive_last5', last5);
-        currentStep = 3;
+
+        currentStep = 2;
         renderStep();
       });
 
-    } else if (currentStep === 3) {
-      stepIndicator.textContent = `Step 3 / 3`;
+    } else if (currentStep === 2) {
+      // Step2：取貨方式
+      stepIndicator.textContent = `Step 2 / ${TOTAL_STEPS}`;
       stepCard.innerHTML = `
         <div class="step-title">選擇取貨方式</div>
         <div class="step-desc">請選擇你希望的取貨方式。</div>
@@ -309,7 +436,7 @@
             <div class="success-text">
               感謝你的訂購！<br/>
               我們已收到你的訂單與匯款資訊，<br/>
-              確認收到款項會用簡訊通知！，<br/>
+              確認收到款項後會用簡訊通知！，<br/>
               請耐心等待衣服的到來，<br/>
               巴拉冠自取相關時間，將再另外通知你。🌾
             </div>
