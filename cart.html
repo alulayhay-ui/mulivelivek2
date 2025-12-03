@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>購物車｜Mulivelivek</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+      background:#f7f3ec;
+      color:#2f2415;
+    }
+    .wrap{
+      max-width:900px;
+      margin:24px auto;
+      padding:0 16px 40px;
+    }
+    h1{font-size:22px;margin-bottom:16px;}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:#fff;
+      border-radius:16px;
+      overflow:hidden;
+      margin-bottom:16px;
+    }
+    th,td{
+      padding:10px 12px;
+      font-size:14px;
+      border-bottom:1px solid #e3ddcf;
+    }
+    th{background:#f0ebe0;text-align:left;}
+    tfoot td{border-bottom:none;}
+    .text-right{text-align:right;}
+    .empty{
+      padding:40px 0;
+      text-align:center;
+      font-size:14px;
+      color:#7b6d5a;
+    }
+    .btn{
+      display:inline-block;
+      padding:9px 18px;
+      border-radius:999px;
+      text-decoration:none;
+      border:none;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .btn-primary{
+      background:#000;
+      color:#fff;
+    }
+    .btn-ghost{
+      background:transparent;
+      border:1px solid #d0c8b7;
+      color:#7b6d5a;
+    }
+    .actions{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:10px;
+      gap:8px;
+    }
+    input[type="number"]{
+      width:60px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>購物車</h1>
+
+    <div id="cart-container"></div>
+
+    <div class="actions">
+      <a href="product.html" class="btn btn-ghost">← 回到商品頁</a>
+      <button id="checkout-btn" class="btn btn-primary">前往結帳</button>
+    </div>
+  </div>
+
+<script>
+  const CART_KEY = 'mulivelivek_cart';
+
+  function getCart() {
+    const raw = localStorage.getItem(CART_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }
+  function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  }
+
+  const container = document.getElementById('cart-container');
+  const checkoutBtn = document.getElementById('checkout-btn');
+
+  function renderCart() {
+    const cart = getCart();
+    if (!cart.length) {
+      container.innerHTML = '<div class="empty">目前購物車是空的。</div>';
+      checkoutBtn.disabled = true;
+      checkoutBtn.style.opacity = 0.5;
+      return;
+    }
+    checkoutBtn.disabled = false;
+    checkoutBtn.style.opacity = 1;
+
+    let total = 0;
+    let html = '<table><thead><tr><th>品項</th><th>尺寸</th><th>數量</th><th>單價</th><th class="text-right">小計</th><th></th></tr></thead><tbody>';
+
+    cart.forEach((item, index) => {
+      const subtotal = item.price * item.qty;
+      total += subtotal;
+      html += `
+        <tr data-index="${index}">
+          <td>${item.name}</td>
+          <td>${item.size}</td>
+          <td>
+            <input type="number" min="1" value="${item.qty}" class="qty-input" />
+          </td>
+          <td>NT$ ${item.price}</td>
+          <td class="text-right">NT$ ${subtotal}</td>
+          <td><button class="remove-btn">刪除</button></td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" class="text-right">合計</td>
+          <td class="text-right">NT$ ${total}</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>`;
+
+    container.innerHTML = html;
+
+    // 綁定事件
+    container.querySelectorAll('.qty-input').forEach(input => {
+      input.addEventListener('change', e => {
+        const tr = e.target.closest('tr');
+        const index = Number(tr.dataset.index);
+        const cart = getCart();
+        let v = Math.max(1, Number(e.target.value) || 1);
+        cart[index].qty = v;
+        saveCart(cart);
+        renderCart();
+      });
+    });
+
+    container.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const tr = e.target.closest('tr');
+        const index = Number(tr.dataset.index);
+        const cart = getCart();
+        cart.splice(index, 1);
+        saveCart(cart);
+        renderCart();
+      });
+    });
+  }
+
+  renderCart();
+
+  checkoutBtn.addEventListener('click', () => {
+    const cart = getCart();
+    if (!cart.length) return;
+    window.location.href = 'checkout.html';
+  });
+</script>
+</body>
+</html>
