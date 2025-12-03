@@ -423,6 +423,15 @@
 }
 }
   </style>
+   <!-- ⭐ 強制首頁載入回到最上面（放在 style 後面） -->
+  <script>
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.addEventListener('load', function () {
+      window.scrollTo(0, 0);
+    });
+  </script>
 </head>
 <body>
 
@@ -444,7 +453,7 @@
   <main>
     <section class="hero">
       <div>
-        <div class="hero-eyebrow">2025 Chu-lu Harvest Festival</div>
+        <div class="hero-eyebrow">2025 Mulivelivek 'Amiyan </div>
         <h1 class="hero-title">初鹿部落年祭限定水洗長袖｜MULIVELIVEK 限定款</h1>
         <p class="hero-sub">
           復古水洗灰搭配粉色字體，一件就能完成日常穿搭，也是一份部落的紀念。<br>
