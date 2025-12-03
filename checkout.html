@@ -282,7 +282,7 @@
 
 <script>
   const CART_KEY = 'mulivelivek_cart';
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxWB-F7H8QmGHquRWcHlbtIEaZQSKqM47tMY_BOSmEAOiaHNa8arN7w-CLPCURZD_y81Q/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxsLE1UYbhmNO3XmAw1ChPBDZUMnVutvNUfOnccg31oRFdTa5_54UINb4tsE22C-tfd-w/exec';
 
   function getCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -292,82 +292,40 @@
     localStorage.removeItem(CART_KEY);
   }
 
-  // 把前端的訂單資料組成一個物件，準備送到 Google Sheet
-  // 同時統計各尺寸（M / L / XL / 2XL / 3XL）的件數
+  // 1. 組訂單資料，準備送給 Google Script
   function buildOrderData(pickupMethod) {
     const cart = getCart();
-
-    // 1. 統計各尺寸件數
-    const sizeCount = {
-      M: 0,
-      L: 0,
-      XL: 0,
-      '2XL': 0,
-      '3XL': 0
-    };
-
-    cart.forEach(item => {
-      const q = Number(item.qty) || 0;
-      if (sizeCount.hasOwnProperty(item.size)) {
-        sizeCount[item.size] += q;
-      }
-    });
-
-    // 2. 商品清單文字（如果未來要看明細用）
     const itemsString = cart
       .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
       .join('；');
 
-    // 3. 計算總金額（只算衣服，不含運費）
     const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
 
-    // 4. 從第一步拿到的資料
-    const name  = sessionStorage.getItem('mulive_name') || '';
-    const phone = sessionStorage.getItem('mulive_phone') || '';
-    const last5 = sessionStorage.getItem('mulive_last5') || '';
-    const note  = sessionStorage.getItem('mulive_note')  || '';
-
-    const methodText = pickupMethod || '';
-
-    // 5. 回傳給 Apps Script 的資料
-    // 記得在 Apps Script 那邊用 data.mQty / data.lQty ... 等欄位對應
     return {
       formName: 'Mulivelivek初鹿部落祭典商品',
-
-      name:  name,
-      phone: phone,
-
-      method: methodText,        // 取貨方式（巴拉冠自取 / 7-11 店到店）
-      pickupMethod: methodText,  // 同一內容，多給一個欄位以防後端還在用舊名字
-
-      mQty:   sizeCount.M,       // M 件數
-      lQty:   sizeCount.L,       // L 件數
-      xlQty:  sizeCount.XL,      // XL 件數
-      x2lQty: sizeCount['2XL'],  // 2XL 件數
-      x3lQty: sizeCount['3XL'],  // 3XL 件數
-
-      total: total,              // 總金額
-      last5: last5,              // 匯款後五碼
-      note:  note,               // 備註（想對我們說的話）
-
-      items: itemsString,        // 純文字商品清單
+      name: sessionStorage.getItem('mulive_name') || '',
+      phone: sessionStorage.getItem('mulive_phone') || '',
+      last5: sessionStorage.getItem('mulive_last5') || '',
+      note: sessionStorage.getItem('mulive_note') || '',
+      items: itemsString,
+      total: total,
+      pickupMethod: pickupMethod || '',
       createdAt: new Date().toISOString()
     };
   }
 
-   // 送資料到 Google Apps Script Web App（避免 CORS preflight）
+  // 2. 送資料到 Google Apps Script Web App
+  //   👉 這裡「不要設定任何 headers」就不會觸發 preflight
   function sendOrderToSheet(orderData) {
-    // 注意：mode: 'no-cors' + 不設 headers
-    // 瀏覽器不會做 preflight，request 會直接送到 Apps Script
-    fetch(WEB_APP_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(orderData)
-    }).catch(err => {
+    try {
+      fetch(WEB_APP_URL, {
+        method: 'POST',
+        body: JSON.stringify(orderData)   // 直接丟字串，瀏覽器不會幫你加 application/json
+      });
+      // 不處理回應：不讀 res.json()，避免 CORS 麻煩
+    } catch (err) {
       console.error('送出到試算表失敗（網路層）', err);
-    });
-    // no-cors 的回應是 opaque，沒辦法讀 response，
-    // 不過對我們來說只要送到就好，成功與否在試算表那邊看。
+    }
   }
 
   let currentStep = 1;
@@ -390,7 +348,7 @@
     window.location.href = 'product.html';
   }
 
-  // 產生訂單摘要內容（無運費）
+  // 訂單摘要（無運費）
   function renderOrderSummary(){
     const card = document.getElementById('summary-card');
     if (!card) return;
@@ -513,7 +471,7 @@
       // 巴拉冠自取
       document.getElementById('btn-pickup').addEventListener('click', () => {
         const orderData = buildOrderData('巴拉冠自取');
-        sendOrderToSheet(orderData);
+        sendOrderToSheet(orderData);  // 這裡會直接打到 Web App
 
         showLoading('建立訂單中…');
         setTimeout(() => {
@@ -525,7 +483,7 @@
             <div class="success-text">
               感謝你的訂購！<br/>
               我們已收到你的訂單與匯款資訊，<br/>
-              確認收到款項後會用簡訊通知！<br/>
+              確認收到款項後會用簡訊通知！，<br/>
               請耐心等待衣服的到來，<br/>
               巴拉冠自取相關時間，將再另外通知你。🌾
             </div>
