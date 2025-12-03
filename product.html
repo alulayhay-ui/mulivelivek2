@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>初鹿部落年祭限定水洗長袖｜MULIVELIVEK 限定款</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{
+      --bg:#f5f5f5;
+      --card:#ffffff;
+      --border:#e3e2e2;
+      --text:#111111;
+      --muted:#777777;
+      --black:#000000;
+    }
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    body{
+      min-height:100vh;
+    }
+
+    .page{
+      max-width:1200px;
+      margin:32px auto;
+      padding:0 16px 40px;
+    }
+
+    .product-layout{
+      display:grid;
+      grid-template-columns:minmax(0,3fr) minmax(0,2.6fr);
+      gap:40px;
+      align-items:flex-start;
+    }
+
+    /* 圖片區 */
+    .gallery-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-auto-rows:1fr;
+      gap:18px;
+    }
+    .gallery-item{
+      background:#d9d9d9;
+      border-radius:18px;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .gallery-item img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    /* 右側卡片 */
+    .info-card{
+      background:var(--card);
+      border-radius:24px;
+      padding:28px 28px 24px;
+      box-shadow:0 18px 50px rgba(0,0,0,.06);
+    }
+
+    .title-main{
+      font-size:24px;
+      font-weight:700;
+      line-height:1.4;
+      margin:0 0 4px;
+    }
+    .title-sub{
+      font-size:20px;
+      font-weight:700;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      margin:0 0 16px;
+    }
+    .price{
+      font-size:16px;
+      font-weight:700;
+      margin-bottom:18px;
+    }
+
+    .meta-list{
+      list-style:none;
+      padding:0;
+      margin:0 0 20px;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .meta-list li{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:6px;
+    }
+
+    .section-label{
+      font-size:13px;
+      margin:16px 0 8px;
+    }
+
+    .size-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .size-btn{
+      min-width:56px;
+      padding:9px 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-size:13px;
+      cursor:pointer;
+      transition:.15s;
+    }
+    .size-btn:hover{
+      border-color:#000;
+    }
+    .size-btn.is-active{
+      background:#000;
+      color:#fff;
+      border-color:#000;
+    }
+
+    .select-like{
+      width:100%;
+      padding:9px 12px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font-size:13px;
+      background:#fff;
+      text-align:left;
+    }
+
+    .qty-row{
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      border:1px solid var(--border);
+      overflow:hidden;
+      margin-top:4px;
+    }
+    .qty-btn{
+      width:36px;
+      height:34px;
+      border:none;
+      background:#fff;
+      cursor:pointer;
+      font-size:18px;
+    }
+    .qty-input{
+      width:48px;
+      border:none;
+      text-align:center;
+      font-size:14px;
+      outline:none;
+    }
+
+    .add-to-cart-btn{
+      margin-top:22px;
+      width:100%;
+      border:none;
+      border-radius:999px;
+      height:46px;
+      background:var(--black);
+      color:#fff;
+      font-size:14px;
+      font-weight:600;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      cursor:pointer;
+    }
+
+    .share-row{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    @media(max-width:900px){
+      .product-layout{
+        grid-template-columns:1fr;
+        gap:24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="product-layout">
+
+      <!-- 左：圖片區 -->
+      <div class="gallery-grid">
+        <!-- TODO: 把 src 換成你自己的檔名 -->
+        <div class="gallery-item">
+          <img src="front-back.jpg" alt="正反面">
+        </div>
+        <div class="gallery-item">
+          <img src="front.jpg" alt="正面">
+        </div>
+        <div class="gallery-item">
+          <img src="back.jpg" alt="背面">
+        </div>
+        <div class="gallery-item">
+          <img src="front-back.jpg" alt="正反面">
+        </div>
+      </div>
+
+      <!-- 右：商品資訊 -->
+      <aside class="info-card">
+        <h1 class="title-main">初鹿部落年祭限定水洗長袖</h1>
+        <h2 class="title-sub">MULIVELIVEK 限定款</h2>
+
+        <div class="price">NT$ 450</div>
+
+        <ul class="meta-list">
+          <li>🌏 Worldwide shipping / 臺灣本島寄送</li>
+          <li>🔒 Secure payments / 匯款付款</li>
+          <li>✅ Authentic products / 年祭限定周邊</li>
+        </ul>
+
+        <div class="section-label">大小</div>
+        <div class="size-row">
+          <button type="button" class="size-btn" data-size="M">M</button>
+          <button type="button" class="size-btn" data-size="L">L</button>
+          <button type="button" class="size-btn" data-size="XL">XL</button>
+          <button type="button" class="size-btn" data-size="2XL">2XL</button>
+          <button type="button" class="size-btn" data-size="3XL">3XL</button>
+        </div>
+
+        <div class="section-label">顏色</div>
+        <button class="select-like" type="button" disabled>
+          淺灰水洗＋粉色字體
+        </button>
+
+        <div class="section-label">數量</div>
+        <div class="qty-row">
+          <button type="button" class="qty-btn" id="qty-minus">-</button>
+          <input id="qty-input" class="qty-input" type="number" min="1" value="1" />
+          <button type="button" class="qty-btn" id="qty-plus">+</button>
+        </div>
+
+        <button type="button" class="add-to-cart-btn" id="add-to-cart-btn">
+          加入購物車
+        </button>
+
+        <div class="share-row">
+          <span>🔗</span><span>分享給朋友一起穿</span>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 購物車邏輯（接 cart.html / checkout.html 用） -->
+  <script>
+    const CART_KEY = 'mulivelivek_cart';
+
+    function getCart() {
+      const raw = localStorage.getItem(CART_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }
+    function saveCart(cart) {
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    }
+
+    // 尺寸選擇
+    let selectedSize = null;
+    const sizeButtons = document.querySelectorAll('.size-btn');
+    sizeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedSize = btn.dataset.size;
+        sizeButtons.forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+      });
+    });
+
+    // 數量 + / -
+    const qtyInput = document.getElementById('qty-input');
+    document.getElementById('qty-minus').addEventListener('click', () => {
+      const v = Math.max(1, Number(qtyInput.value) - 1 || 1);
+      qtyInput.value = v;
+    });
+    document.getElementById('qty-plus').addEventListener('click', () => {
+      qtyInput.value = Number(qtyInput.value) + 1 || 1;
+    });
+
+    // 加入購物車
+    document.getElementById('add-to-cart-btn').addEventListener('click', () => {
+      if (!selectedSize) {
+        alert('請先選擇尺寸 🙏');
+        return;
+      }
+      const qty = Math.max(1, Number(qtyInput.value) || 1);
+
+      const cart = getCart();
+      const productId = 'longsleeve-2025';
+
+      const existing = cart.find(
+        item => item.id === productId && item.size === selectedSize
+      );
+
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        cart.push({
+          id: productId,
+          name: '初鹿部落年祭限定水洗長袖｜MULIVELIVEK 限定款',
+          price: 450,
+          size: selectedSize,
+          color: '淺灰水洗＋粉色字體',
+          qty
+        });
+      }
+
+      saveCart(cart);
+      // 加入後跳到購物車頁（記得確定檔名）
+      window.location.href = 'cart.html';
+    });
+  </script>
+</body>
+</html>
