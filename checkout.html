@@ -355,20 +355,19 @@
     };
   }
 
-  // 送資料到 Google Apps Script Web App
+   // 送資料到 Google Apps Script Web App（避免 CORS preflight）
   function sendOrderToSheet(orderData) {
-    return fetch(WEB_APP_URL, {
+    // 注意：mode: 'no-cors' + 不設 headers
+    // 瀏覽器不會做 preflight，request 會直接送到 Apps Script
+    fetch(WEB_APP_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      mode: 'no-cors',
       body: JSON.stringify(orderData)
-    })
-    .then(res => res.json())
-    .then(result => {
-      console.log('送出到試算表成功', result);
-    })
-    .catch(err => {
-      console.error('送出到試算表失敗', err);
+    }).catch(err => {
+      console.error('送出到試算表失敗（網路層）', err);
     });
+    // no-cors 的回應是 opaque，沒辦法讀 response，
+    // 不過對我們來說只要送到就好，成功與否在試算表那邊看。
   }
 
   let currentStep = 1;
