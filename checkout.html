@@ -254,6 +254,84 @@
     @media(max-width:768px){
       .wrap{margin-top:64px;}
     }
+   /* --- 匯款確認彈窗（含動畫） --- */
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  display: flex;                /* 一直是 flex，靠 visibility + opacity 控制顯示 */
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
+
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .25s ease, visibility .25s ease;
+}
+
+.modal-overlay.is-open{
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-box{
+  width: 90%;
+  max-width: 360px;
+  background: #fff;
+  padding: 20px 22px 24px;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.25);
+  text-align: center;
+
+  /* 初始狀態：稍微縮小＋下移＋透明 */
+  transform: scale(.9) translateY(10px);
+  opacity: 0;
+  transition:
+    transform .25s cubic-bezier(.16,.75,.33,1.2),
+    opacity .25s ease;
+}
+
+.modal-overlay.is-open .modal-box{
+  /* 開啟時：回到原位＋放大到 1 ＋顯示 */
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.modal-title{
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.modal-remit-info{
+  background: #f7f3ec;
+  padding: 14px;
+  border-radius: 12px;
+  line-height: 1.6;
+  color: #2f2415;
+  margin-bottom: 18px;
+  font-size: 14px;
+}
+.modal-buttons{
+  display: flex;
+  gap: 10px;
+}
+.modal-btn{
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 999px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+}
+.modal-btn.primary{
+  background: #000;
+  color: #fff;
+}
+.modal-btn.ghost{
+  background: transparent;
+  border: 1px solid #d0c8b7;
+  color: #7b6d5a;
+}
   </style>
 </head>
 <body>
@@ -291,6 +369,15 @@
   function clearCart() {
     localStorage.removeItem(CART_KEY);
   }
+  function openConfirmModal() {
+  document.getElementById("confirm-remit-modal")
+          .classList.add("is-open");
+}
+
+function closeConfirmModal() {
+  document.getElementById("confirm-remit-modal")
+          .classList.remove("is-open");
+}
 
   // 1. 組訂單資料，準備送給 Google Script
   function buildOrderData(pickupMethod) {
@@ -451,24 +538,24 @@
       renderOrderSummary();
 
       document.getElementById('next-1').addEventListener('click', () => {
-        const name = document.getElementById('name').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const last5 = document.getElementById('last5').value.trim();
-        const note = document.getElementById('note').value.trim();
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const last5 = document.getElementById('last5').value.trim();
+  const note = document.getElementById('note').value.trim();
 
-        if (!name || !phone || !last5) {
-          alert('請填寫姓名、電話與匯款後五碼 🙏');
-          return;
-        }
+  if (!name || !phone || !last5) {
+    alert('請填寫姓名、電話與匯款後五碼 🙏');
+    return;
+  }
 
-        sessionStorage.setItem('mulive_name', name);
-        sessionStorage.setItem('mulive_phone', phone);
-        sessionStorage.setItem('mulive_last5', last5);
-        sessionStorage.setItem('mulive_note', note || '');
+  sessionStorage.setItem('mulive_name', name);
+  sessionStorage.setItem('mulive_phone', phone);
+  sessionStorage.setItem('mulive_last5', last5);
+  sessionStorage.setItem('mulive_note', note || '');
 
-        currentStep = 2;
-        renderStep();
-      });
+  // 這裡不直接進 Step2，先打開彈窗
+  openConfirmModal();
+});
     }
 
     else if (currentStep === 2) {
@@ -517,10 +604,40 @@
           window.location.href = 'https://myship.7-11.com.tw/cart/confirm/GM2511309292297';
         }, 700);
       });
+      // 彈窗：尚未匯款 → 關閉彈窗，留在 Step1
+document.getElementById("modal-no").addEventListener("click", () => {
+  closeConfirmModal();
+});
+
+// 彈窗：已匯款 → 關閉彈窗並進入 Step2
+document.getElementById("modal-yes").addEventListener("click", () => {
+  closeConfirmModal();
+  currentStep = 2;
+  renderStep();
+});
     }
   }
 
   renderStep();
 </script>
+  <!-- 匯款確認彈窗 -->
+<div id="confirm-remit-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">請確認是否已完成匯款</div>
+
+    <div class="modal-remit-info">
+      💰 <strong>匯款資訊</strong><br>
+      初鹿青年會帳戶<br>
+      銀行代碼：823（將來銀行）<br>
+      帳號：88680977418900<br>
+      <span style="font-size:13px; color:#7b6d5a;">（有族人想贊助也是匯這裡~~）</span>
+    </div>
+
+    <div class="modal-buttons">
+      <button id="modal-no" class="modal-btn ghost">尚未匯款</button>
+      <button id="modal-yes" class="modal-btn primary">已匯款</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
