@@ -5,15 +5,55 @@
   <title>結帳｜Mulivelivek</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body{
-      margin:0;
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
-      background:#f7f3ec;
-      color:#2f2415;
+    :root{
+      --bg:#f7f3ec;
+      --card:#ffffff;
+      --border:#e3ddcf;
+      --text:#2f2415;
+      --muted:#7b6d5a;
+      --black:#000;
     }
+    *{box-sizing:border-box;}
+    html,body{
+      margin:0;
+      padding:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    body{min-height:100vh;}
+
+    /* 左上按鈕 */
+    .top-buttons{
+      position:fixed;
+      top:16px;
+      left:16px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      z-index:300;
+    }
+    .top-btn{
+      padding:6px 12px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:#fff;
+      color:#333;
+      font-size:13px;
+      text-decoration:none;
+      box-shadow:0 4px 10px rgba(0,0,0,.05);
+      cursor:pointer;
+      transition:.15s;
+      text-align:left;
+    }
+    .top-btn:hover{
+      border-color:#000;
+      color:#000;
+    }
+
     .wrap{
       max-width:520px;
-      margin:24px auto 40px;
+      margin:56px auto 40px;
       padding:0 16px;
     }
     h1{font-size:22px;margin-bottom:10px;}
@@ -77,15 +117,83 @@
       text-align:center;
       padding:20px 6px 10px;
     }
+
+    /* 右下浮動購物車按鈕（在這頁當「回購物車」用） */
+    .floating-cart{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      padding:10px 16px;
+      border-radius:999px;
+      background:#000;
+      color:#fff;
+      font-size:13px;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      box-shadow:0 8px 18px rgba(0,0,0,.25);
+      z-index:250;
+    }
+
+    /* Loading 蒙版 */
+    #loading-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.35);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:500;
+    }
+    .loading-box{
+      background:#fff;
+      padding:18px 20px;
+      border-radius:16px;
+      text-align:center;
+      font-size:14px;
+      color:#333;
+      box-shadow:0 12px 30px rgba(0,0,0,.25);
+    }
+    .spinner{
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      border:3px solid #e3e3e3;
+      border-top-color:#000;
+      margin:0 auto 10px;
+      animation:spin .7s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    @media(max-width:768px){
+      .wrap{margin-top:64px;}
+    }
   </style>
 </head>
 <body>
+
+  <!-- 左上：回首頁 / 返回上一頁 -->
+  <div class="top-buttons">
+    <a href="index.html" class="top-btn">← 回到首頁</a>
+    <button type="button" class="top-btn" onclick="history.back()">⟵ 返回上一頁</button>
+  </div>
+
+  <!-- 右下：回購物車 -->
+  <a href="cart.html" class="floating-cart">🛒 回到購物車</a>
+
+  <!-- Loading 蒙版 -->
+  <div id="loading-overlay">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <div id="loading-text">處理中，請稍候…</div>
+    </div>
+  </div>
+
   <div class="wrap">
     <h1>結帳</h1>
     <div id="step-indicator" class="step-indicator">Step 1 / 3</div>
-    <div class="step-card" id="step-card">
-      <!-- 內容會由 JS 填入 -->
-    </div>
+    <div class="step-card" id="step-card"></div>
   </div>
 
 <script>
@@ -102,8 +210,17 @@
   let currentStep = 1;
   const stepCard = document.getElementById('step-card');
   const stepIndicator = document.getElementById('step-indicator');
+  const loadingOverlay = document.getElementById('loading-overlay');
+  const loadingText = document.getElementById('loading-text');
 
-  // 如果購物車是空的，就導回商品/購物車
+  function showLoading(text){
+    loadingText.textContent = text || '處理中，請稍候…';
+    loadingOverlay.style.display = 'flex';
+  }
+  function hideLoading(){
+    loadingOverlay.style.display = 'none';
+  }
+
   if (!getCart().length) {
     alert('購物車是空的，請先選購商品。');
     window.location.href = 'product.html';
@@ -111,6 +228,7 @@
 
   function renderStep() {
     stepIndicator.textContent = `Step ${currentStep} / 3`;
+
     if (currentStep === 1) {
       stepCard.innerHTML = `
         <div class="step-title">填寫聯絡資料</div>
@@ -124,7 +242,6 @@
           <button class="btn btn-primary" id="next-1">下一步</button>
         </div>
       `;
-
       document.getElementById('next-1').addEventListener('click', () => {
         const name = document.getElementById('name').value.trim();
         const phone = document.getElementById('phone').value.trim();
@@ -132,7 +249,6 @@
           alert('請填寫姓名與電話 🙏');
           return;
         }
-        // 存在 sessionStorage（純前端）
         sessionStorage.setItem('mulive_name', name);
         sessionStorage.setItem('mulive_phone', phone);
         currentStep = 2;
@@ -150,21 +266,17 @@
           帳號：88680977418900<br/>
           <span style="display:block;margin-top:6px;">（有族人想贊助也是匯這裡~~）</span>
         </div>
-
         <label for="last5">匯款帳號後五碼</label>
         <input id="last5" type="text" maxlength="5" placeholder="例：12345" />
-
         <div class="btn-row">
           <button class="btn btn-ghost" id="back-2">← 上一步</button>
           <button class="btn btn-primary" id="next-2">下一步</button>
         </div>
       `;
-
       document.getElementById('back-2').addEventListener('click', () => {
         currentStep = 1;
         renderStep();
       });
-
       document.getElementById('next-2').addEventListener('click', () => {
         const last5 = document.getElementById('last5').value.trim();
         if (!last5) {
@@ -181,7 +293,6 @@
       stepCard.innerHTML = `
         <div class="step-title">選擇取貨方式</div>
         <div class="step-desc">請選擇你希望的取貨方式。</div>
-
         <div class="btn-row">
           <button class="btn btn-primary" id="btn-pickup">巴拉冠自取</button>
           <button class="btn btn-ghost" id="btn-711">7-11 店到店</button>
@@ -189,23 +300,29 @@
       `;
 
       document.getElementById('btn-pickup').addEventListener('click', () => {
-        clearCart();
-        stepIndicator.textContent = '完成';
-        stepCard.innerHTML = `
-          <div class="step-title">訂購完成</div>
-          <div class="success-text">
-            感謝你的訂購！<br/>
-            我們已收到你的訂單與匯款資訊，<br/>
-            請耐心等待衣服的到來，<br/>
-            巴拉冠自取相關時間，將再另外通知你。🌾
-          </div>
-        `;
+        showLoading('建立訂單中…');
+        setTimeout(() => {
+          hideLoading();
+          clearCart();
+          stepIndicator.textContent = '完成';
+          stepCard.innerHTML = `
+            <div class="step-title">訂購完成</div>
+            <div class="success-text">
+              感謝你的訂購！<br/>
+              我們已收到你的訂單與匯款資訊，<br/>
+              請耐心等待衣服的到來，<br/>
+              巴拉冠自取相關時間，將再另外通知你。🌾
+            </div>
+          `;
+        }, 700);
       });
 
       document.getElementById('btn-711').addEventListener('click', () => {
+        showLoading('前往 7-11 取貨設定中…');
         clearCart();
-        // 直接導到你給的 7-11 店到店網址
-        window.location.href = 'https://myship.7-11.com.tw/cart/confirm/GM2511309292297';
+        setTimeout(() => {
+          window.location.href = 'https://myship.7-11.com.tw/cart/confirm/GM2511309292297';
+        }, 700);
       });
     }
   }
