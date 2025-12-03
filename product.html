@@ -25,6 +25,27 @@
       min-height:100vh;
     }
 
+    /* 回首頁按鈕 */
+    .back-home{
+      position:fixed;
+      top:20px;
+      left:20px;
+      padding:8px 14px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:#fff;
+      color:#333;
+      font-size:14px;
+      text-decoration:none;
+      box-shadow:0 4px 10px rgba(0,0,0,.05);
+      z-index:300;
+      transition:.15s;
+    }
+    .back-home:hover{
+      border-color:#000;
+      color:#000;
+    }
+
     .page{
       max-width:1200px;
       margin:32px auto;
@@ -121,9 +142,7 @@
       cursor:pointer;
       transition:.15s;
     }
-    .size-btn:hover{
-      border-color:#000;
-    }
+    .size-btn:hover{border-color:#000;}
     .size-btn.is-active{
       background:#000;
       color:#fff;
@@ -193,16 +212,25 @@
         grid-template-columns:1fr;
         gap:24px;
       }
+      .back-home{
+        top:14px;
+        left:14px;
+        padding:6px 10px;
+        font-size:13px;
+      }
     }
   </style>
 </head>
 <body>
+
+  <!-- ⭐ 回到首頁按鈕（已加入） -->
+  <a href="index.html" class="back-home">← 回到首頁</a>
+
   <div class="page">
     <div class="product-layout">
 
       <!-- 左：圖片區 -->
       <div class="gallery-grid">
-        <!-- TODO: 把 src 換成你自己的檔名 -->
         <div class="gallery-item">
           <img src="assets/pic/效果图 (1).png" alt="正反面">
         </div>
@@ -240,9 +268,7 @@
         </div>
 
         <div class="section-label">顏色</div>
-        <button class="select-like" type="button" disabled>
-          淺灰水洗＋粉色字體
-        </button>
+        <button class="select-like" disabled>淺灰水洗＋粉色字體</button>
 
         <div class="section-label">數量</div>
         <div class="qty-row">
@@ -251,82 +277,57 @@
           <button type="button" class="qty-btn" id="qty-plus">+</button>
         </div>
 
-        <button type="button" class="add-to-cart-btn" id="add-to-cart-btn">
-          加入購物車
-        </button>
+        <button class="add-to-cart-btn" id="add-to-cart-btn">加入購物車</button>
 
         <div class="share-row">
-          <span>🔗</span><span>分享給朋友一起穿</span>
+          🔗 分享給朋友一起穿
         </div>
       </aside>
     </div>
   </div>
 
-  <!-- 購物車邏輯（接 cart.html / checkout.html 用） -->
-  <script>
-    const CART_KEY = 'mulivelivek_cart';
+<script>
+  const CART_KEY = 'mulivelivek_cart';
 
-    function getCart() {
-      const raw = localStorage.getItem(CART_KEY);
-      return raw ? JSON.parse(raw) : [];
-    }
-    function saveCart(cart) {
-      localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    }
+  function getCart(){const raw=localStorage.getItem(CART_KEY);return raw?JSON.parse(raw):[];}
+  function saveCart(cart){localStorage.setItem(CART_KEY,JSON.stringify(cart));}
 
-    // 尺寸選擇
-    let selectedSize = null;
-    const sizeButtons = document.querySelectorAll('.size-btn');
-    sizeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        selectedSize = btn.dataset.size;
-        sizeButtons.forEach(b => b.classList.remove('is-active'));
-        btn.classList.add('is-active');
+  let selectedSize=null;
+  const sizeBtns=document.querySelectorAll('.size-btn');
+  sizeBtns.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      selectedSize=btn.dataset.size;
+      sizeBtns.forEach(b=>b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+    });
+  });
+
+  const qty=document.getElementById('qty-input');
+  document.getElementById('qty-minus').onclick=()=>{qty.value=Math.max(1,qty.value-1);}
+  document.getElementById('qty-plus').onclick=()=>{qty.value=Number(qty.value)+1;}
+
+  document.getElementById('add-to-cart-btn').onclick=()=>{
+    if(!selectedSize){alert("請先選擇尺寸 🙏");return;}
+    const q=Math.max(1,Number(qty.value)||1);
+    const cart=getCart();
+    const id='longsleeve-2025';
+    const exist=cart.find(item=>item.id===id && item.size===selectedSize);
+
+    if(exist){exist.qty+=q;}
+    else{
+      cart.push({
+        id,
+        name:'初鹿部落年祭限定水洗長袖｜MULIVELIVEK 限定款',
+        price:450,
+        size:selectedSize,
+        color:'淺灰水洗＋粉色字體',
+        qty:q
       });
-    });
+    }
+    saveCart(cart);
+    window.location.href='cart.html';
+  };
+</script>
 
-    // 數量 + / -
-    const qtyInput = document.getElementById('qty-input');
-    document.getElementById('qty-minus').addEventListener('click', () => {
-      const v = Math.max(1, Number(qtyInput.value) - 1 || 1);
-      qtyInput.value = v;
-    });
-    document.getElementById('qty-plus').addEventListener('click', () => {
-      qtyInput.value = Number(qtyInput.value) + 1 || 1;
-    });
-
-    // 加入購物車
-    document.getElementById('add-to-cart-btn').addEventListener('click', () => {
-      if (!selectedSize) {
-        alert('請先選擇尺寸 🙏');
-        return;
-      }
-      const qty = Math.max(1, Number(qtyInput.value) || 1);
-
-      const cart = getCart();
-      const productId = 'longsleeve-2025';
-
-      const existing = cart.find(
-        item => item.id === productId && item.size === selectedSize
-      );
-
-      if (existing) {
-        existing.qty += qty;
-      } else {
-        cart.push({
-          id: productId,
-          name: '初鹿部落年祭限定水洗長袖｜MULIVELIVEK 限定款',
-          price: 450,
-          size: selectedSize,
-          color: '淺灰水洗＋粉色字體',
-          qty
-        });
-      }
-
-      saveCart(cart);
-      // 加入後跳到購物車頁（記得確定檔名）
-      window.location.href = 'cart.html';
-    });
-  </script>
 </body>
 </html>
