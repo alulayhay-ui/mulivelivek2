@@ -355,7 +355,46 @@
       .hero{
         grid-template-columns:1fr;
       }
-    }
+
+      /* 浮動 LINE 客服泡泡 */
+.floating-line-btn{
+  position: fixed;
+  right: 16px;
+  bottom: 90px; /* 避開浮動購物車，剛剛好 */
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #06C755; /* LINE 綠 */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: .2s;
+}
+
+.floating-line-btn img{
+  width: 28px;
+  height: 28px;
+}
+
+.floating-line-btn:hover{
+  transform: scale(1.08);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.35);
+}
+
+@media(max-width: 768px){
+  .floating-line-btn{
+    right: 12px;
+    bottom: 85px;
+    width: 46px;
+    height: 46px;
+  }
+  .floating-line-btn img{
+    width: 24px;
+    height: 24px;
+  }
+}
   </style>
 </head>
 <body>
@@ -476,6 +515,9 @@
           如有大宗訂購或尺寸問題，歡迎私訊
           <strong>Mulivelivek 粉絲專頁 / IG</strong> 詢問。
         </p>
+        <a href="https://lin.ee/UNwICJo" target="_blank" class="floating-line-btn">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" alt="LINE" />
+</a>
       </div>
     </section>
   </main>
