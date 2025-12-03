@@ -361,8 +361,7 @@
       stepIndicator.textContent = `Step ${currentStep} / ${TOTAL_STEPS}`;
     }
 
-    if (currentStep === 1) {
-      // Step1：訂單摘要 + 聯絡資料 + 匯款資訊（合併）
+       if (currentStep === 1) {
       stepCard.innerHTML = `
         <div id="summary-card" class="summary-card"></div>
 
@@ -372,10 +371,10 @@
         </div>
 
         <label for="name">姓名</label>
-        <input id="name" type="text" placeholder="例：鄭彥軍" />
+        <input id="name" type="text" placeholder="例：阿軍" />
 
         <label for="phone">電話</label>
-        <input id="phone" type="tel" placeholder="例：0910-558-302" />
+        <input id="phone" type="tel" placeholder="例：0912-345-678" />
 
         <div class="remit-box">
           <strong>💰 匯款資訊</strong>
@@ -387,6 +386,10 @@
 
         <label for="last5">匯款帳號後五碼</label>
         <input id="last5" type="text" maxlength="5" placeholder="例：12345" />
+
+        <label for="note">想對我們說的話（選填）</label>
+        <textarea id="note" rows="3" placeholder="例：衣服可以幫我另外包裝嗎？或留給我 M 號比較大的那件 🙏" 
+          style="width:100%;padding:10px;border-radius:10px;border:1px solid #d0c8b7;font-size:14px;resize:none;"></textarea>
 
         <div class="btn-row">
           <button class="btn btn-ghost" onclick="window.location.href='cart.html'">← 返回購物車</button>
@@ -400,20 +403,24 @@
         const name = document.getElementById('name').value.trim();
         const phone = document.getElementById('phone').value.trim();
         const last5 = document.getElementById('last5').value.trim();
+        const note = document.getElementById('note').value.trim();
 
         if (!name || !phone || !last5) {
           alert('請填寫姓名、電話與匯款後五碼 🙏');
           return;
         }
+
         sessionStorage.setItem('mulive_name', name);
         sessionStorage.setItem('mulive_phone', phone);
         sessionStorage.setItem('mulive_last5', last5);
+        sessionStorage.setItem('mulive_note', note || '');
 
         currentStep = 2;
         renderStep();
       });
+    }
 
-    } else if (currentStep === 2) {
+    else if (currentStep === 2) {
       // Step2：取貨方式
       stepIndicator.textContent = `Step 2 / ${TOTAL_STEPS}`;
       stepCard.innerHTML = `
