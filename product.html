@@ -232,36 +232,126 @@
       z-index:250;
     }
 
-    /* Loading 蒙版 + 動畫 */
-    #loading-overlay{
+    /* 右下角浮動購物車按鈕 */
+    .floating-cart{
       position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.35);
-      display:none;          /* 預設隱藏 */
+      right:16px;
+      bottom:16px;
+      padding:10px 16px;
+      border-radius:999px;
+      background:#000;
+      color:#fff;
+      font-size:13px;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      box-shadow:0 8px 18px rgba(0,0,0,.25);
+      z-index:250;
+    }
+    .floating-cart-count{
+      min-width:18px;
+      height:18px;
+      padding:0 6px;
+      border-radius:999px;
+      background:#fff;
+      color:#000;
+      font-size:11px;
+      display:none;
       align-items:center;
       justify-content:center;
-      z-index:500;
     }
-    .loading-box{
+
+    /* 加入購物車後的小視窗 */
+    .mini-cart{
+      position:fixed;
+      top:80px;
+      right:24px;
+      width:280px;
       background:#fff;
-      padding:18px 20px;
-      border-radius:16px;
-      text-align:center;
-      font-size:14px;
-      color:#333;
-      box-shadow:0 12px 30px rgba(0,0,0,.25);
+      border-radius:18px;
+      box-shadow:0 18px 40px rgba(0,0,0,.18);
+      padding:14px 16px 16px;
+      font-size:13px;
+      z-index:400;
+      display:none; /* 預設隱藏 */
     }
-    .spinner{
-      width:32px;
-      height:32px;
-      border-radius:50%;
-      border:3px solid #e3e3e3;
-      border-top-color:#000;
-      margin:0 auto 10px;
-      animation:spin 0.7s linear infinite;
+    .mini-cart-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-weight:600;
+      margin-bottom:10px;
     }
-    @keyframes spin{
-      to{transform:rotate(360deg);}
+    .mini-cart-header span{
+      font-size:13px;
+    }
+    .mini-cart-close{
+      border:none;
+      background:transparent;
+      font-size:18px;
+      line-height:1;
+      cursor:pointer;
+    }
+    .mini-cart-item{
+      display:flex;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .mini-cart-thumb{
+      width:52px;
+      height:52px;
+      border-radius:10px;
+      overflow:hidden;
+      background:#f3f3f3;
+      flex-shrink:0;
+    }
+    .mini-cart-thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .mini-cart-info{
+      flex:1;
+    }
+    .mini-cart-name{
+      font-size:13px;
+      font-weight:600;
+      margin-bottom:2px;
+      line-height:1.4;
+    }
+    .mini-cart-detail{
+      font-size:12px;
+      color:#777;
+    }
+    .mini-cart-btn{
+      width:100%;
+      border-radius:999px;
+      height:40px;
+      font-size:13px;
+      cursor:pointer;
+      border:none;
+      margin-bottom:8px;
+    }
+    .mini-cart-btn-ghost{
+      background:#fff;
+      border:1px solid #e3ddcf;
+      color:#2f2415;
+    }
+    .mini-cart-btn-primary{
+      background:#000;
+      color:#fff;
+    }
+    .mini-cart-link{
+      border:none;
+      background:transparent;
+      font-size:12px;
+      color:#555a96;
+      cursor:pointer;
+      text-decoration:underline;
+      display:block;
+      margin:0 auto;
     }
 
     @media(max-width:900px){
@@ -282,7 +372,7 @@
 </head>
 <body>
 
-  <!-- 左上：回首頁 / 返回上一頁 -->
+    <!-- 左上：回到首頁 -->
   <div class="top-buttons">
     <a href="index.html" class="top-btn">← 回到首頁</a>
   
@@ -291,14 +381,39 @@
   <!-- 右下：浮動購物車按鈕 -->
   <a href="cart.html" class="floating-cart">
     🛒 購物車
+    <span id="cart-count-badge" class="floating-cart-count"></span>
   </a>
 
-  <!-- Loading 蒙版 -->
-  <div id="loading-overlay">
-    <div class="loading-box">
-      <div class="spinner"></div>
-      <div>處理中，請稍候…</div>
+ <!-- 已加入購物車的小視窗 -->
+  <div id="mini-cart" class="mini-cart">
+    <div class="mini-cart-header">
+      <span>✓ 已加入購物車</span>
+      <button type="button" id="mini-cart-close" class="mini-cart-close">×</button>
     </div>
+
+    <div class="mini-cart-item">
+      <div class="mini-cart-thumb">
+        <!-- 用正面圖當縮圖 -->
+        <img src="assets/pic/效果图1 (1).png" alt="商品縮圖">
+      </div>
+      <div class="mini-cart-info">
+        <div class="mini-cart-name">初鹿部落年祭限定水洗長袖｜MULIVELIVEK 限定款</div>
+        <div id="mini-cart-detail" class="mini-cart-detail">
+          <!-- 這裡會用 JS 更新尺寸 -->
+          M，淺灰水洗＋粉色字體
+        </div>
+      </div>
+    </div>
+
+    <button type="button" id="mini-cart-view" class="mini-cart-btn mini-cart-btn-ghost">
+      查看購物車 (<span id="mini-cart-count">1</span>)
+    </button>
+    <button type="button" id="mini-cart-checkout" class="mini-cart-btn mini-cart-btn-primary">
+      結帳
+    </button>
+    <button type="button" id="mini-cart-continue" class="mini-cart-link">
+      繼續購物
+    </button>
   </div>
 
   <div class="page">
@@ -372,7 +487,65 @@
     localStorage.setItem(CART_KEY, JSON.stringify(cart));
   }
 
-  // 尺寸選擇
+  // ===== 浮動購物車 & 小視窗用 =====
+  const cartCountBadge   = document.getElementById('cart-count-badge');
+  const miniCart         = document.getElementById('mini-cart');
+  const miniCartClose    = document.getElementById('mini-cart-close');
+  const miniCartView     = document.getElementById('mini-cart-view');
+  const miniCartCheckout = document.getElementById('mini-cart-checkout');
+  const miniCartContinue = document.getElementById('mini-cart-continue');
+  const miniCartCountEl  = document.getElementById('mini-cart-count');
+  const miniCartDetailEl = document.getElementById('mini-cart-detail');
+
+  function updateCartBadges() {
+    const cart = getCart();
+    const totalQty = cart.reduce((sum, item) => sum + (item.qty || 0), 0);
+
+    if (cartCountBadge) {
+      if (totalQty > 0) {
+        cartCountBadge.textContent = totalQty;
+        cartCountBadge.style.display = 'inline-flex';
+      } else {
+        cartCountBadge.style.display = 'none';
+      }
+    }
+    if (miniCartCountEl) {
+      miniCartCountEl.textContent = totalQty || 1;
+    }
+  }
+
+  function showMiniCart(size) {
+    if (miniCartDetailEl) {
+      miniCartDetailEl.textContent = `${size}，淺灰水洗＋粉色字體`;
+    }
+    if (miniCart) {
+      miniCart.style.display = 'block';
+    }
+  }
+
+  // 小視窗按鈕事件
+  if (miniCartClose) {
+    miniCartClose.addEventListener('click', () => {
+      miniCart.style.display = 'none';
+    });
+  }
+  if (miniCartContinue) {
+    miniCartContinue.addEventListener('click', () => {
+      miniCart.style.display = 'none';
+    });
+  }
+  if (miniCartView) {
+    miniCartView.addEventListener('click', () => {
+      window.location.href = 'cart.html';
+    });
+  }
+  if (miniCartCheckout) {
+    miniCartCheckout.addEventListener('click', () => {
+      window.location.href = 'checkout.html';
+    });
+  }
+
+  // ===== 尺寸選擇 =====
   let selectedSize = null;
   const sizeBtns = document.querySelectorAll('.size-btn');
   sizeBtns.forEach(btn=>{
@@ -391,12 +564,6 @@
   document.getElementById('qty-plus').onclick = () => {
     qty.value = (Number(qty.value) || 1) + 1;
   };
-
-  // Loading 顯示 / 隱藏
-  const loadingOverlay = document.getElementById('loading-overlay');
-  function showLoading(){
-    loadingOverlay.style.display = 'flex';
-  }
 
   // 加入購物車
   document.getElementById('add-to-cart-btn').onclick = () => {
@@ -424,12 +591,13 @@
     }
     saveCart(cart);
 
-    // 顯示 loading，0.6 秒後跳到購物車（可自己調整時間）
-    showLoading();
-    setTimeout(()=>{
-      window.location.href = 'cart.html';
-    },600);
+    // 更新數量 & 顯示「已加入購物車」小視窗
+    updateCartBadges();
+    showMiniCart(selectedSize);
   };
+
+  // 載入頁面時也先更新一次數量（如果之前就有放東西）
+  updateCartBadges();
 </script>
 
 </body>
