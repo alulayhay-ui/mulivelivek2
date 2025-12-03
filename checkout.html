@@ -282,6 +282,7 @@
 
 <script>
   const CART_KEY = 'mulivelivek_cart';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyO-dv9ENHdR_Oucs80HpViwmEguYnS8LgrIliisGUwVo4fBBEgqJHANGnJ9WQZFeCQOw/exec';
 
   function getCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -290,7 +291,43 @@
   function clearCart() {
     localStorage.removeItem(CART_KEY);
   }
+ // 把前端的訂單資料組成一個物件，準備送到 Google Sheet
+  function buildOrderData(pickupMethod) {
+    const cart = getCart();
+    const itemsString = cart
+      .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
+      .join('；');
 
+    const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
+
+    return {
+      formName: 'Mulivelivek初鹿部落祭典商品',
+      name: sessionStorage.getItem('mulive_name') || '',
+      phone: sessionStorage.getItem('mulive_phone') || '',
+      last5: sessionStorage.getItem('mulive_last5') || '',
+      note: sessionStorage.getItem('mulive_note') || '',
+      items: itemsString,
+      total: total,
+      pickupMethod: pickupMethod || '',
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  // 送資料到 Google Apps Script Web App
+  function sendOrderToSheet(orderData) {
+    return fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData)
+    })
+    .then(res => res.json())
+    .then(result => {
+      console.log('送出到試算表成功', result);
+    })
+    .catch(err => {
+      console.error('送出到試算表失敗', err);
+    });
+  }
   let currentStep = 1;
   const TOTAL_STEPS = 2;
   const stepCard = document.getElementById('step-card');
@@ -431,7 +468,12 @@
         </div>
       `;
 
+   // 巴拉冠自取
       document.getElementById('btn-pickup').addEventListener('click', () => {
+        const orderData = buildOrderData('巴拉冠自取');
+        // 不等它回應，先丟給後台去寫表
+        sendOrderToSheet(orderData);
+
         showLoading('建立訂單中…');
         setTimeout(() => {
           hideLoading();
@@ -450,10 +492,14 @@
         }, 700);
       });
 
+      // 7-11 店到店
       document.getElementById('btn-711').addEventListener('click', () => {
+        const orderData = buildOrderData('7-11 店到店');
+        sendOrderToSheet(orderData);
+
         showLoading('前往 7-11 取貨設定中…');
-        clearCart();
         setTimeout(() => {
+          clearCart();
           window.location.href = 'https://myship.7-11.com.tw/cart/confirm/GM2511309292297';
         }, 700);
       });
