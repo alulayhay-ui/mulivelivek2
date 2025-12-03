@@ -25,23 +25,30 @@
       min-height:100vh;
     }
 
-    /* 回首頁按鈕 */
-    .back-home{
+    /* 回首頁 + 返回上一頁 按鈕 */
+    .top-buttons{
       position:fixed;
-      top:20px;
-      left:20px;
-      padding:8px 14px;
+      top:16px;
+      left:16px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      z-index:300;
+    }
+    .top-btn{
+      padding:6px 12px;
       border-radius:10px;
       border:1px solid var(--border);
       background:#fff;
       color:#333;
-      font-size:14px;
+      font-size:13px;
       text-decoration:none;
       box-shadow:0 4px 10px rgba(0,0,0,.05);
-      z-index:300;
+      cursor:pointer;
       transition:.15s;
+      text-align:left;
     }
-    .back-home:hover{
+    .top-btn:hover{
       border-color:#000;
       color:#000;
     }
@@ -207,29 +214,97 @@
       gap:6px;
     }
 
+    /* 右下角浮動購物車按鈕 */
+    .floating-cart{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      padding:10px 16px;
+      border-radius:999px;
+      background:#000;
+      color:#fff;
+      font-size:13px;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      box-shadow:0 8px 18px rgba(0,0,0,.25);
+      z-index:250;
+    }
+
+    /* Loading 蒙版 + 動畫 */
+    #loading-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.35);
+      display:none;          /* 預設隱藏 */
+      align-items:center;
+      justify-content:center;
+      z-index:500;
+    }
+    .loading-box{
+      background:#fff;
+      padding:18px 20px;
+      border-radius:16px;
+      text-align:center;
+      font-size:14px;
+      color:#333;
+      box-shadow:0 12px 30px rgba(0,0,0,.25);
+    }
+    .spinner{
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      border:3px solid #e3e3e3;
+      border-top-color:#000;
+      margin:0 auto 10px;
+      animation:spin 0.7s linear infinite;
+    }
+    @keyframes spin{
+      to{transform:rotate(360deg);}
+    }
+
     @media(max-width:900px){
       .product-layout{
         grid-template-columns:1fr;
         gap:24px;
       }
-      .back-home{
-        top:14px;
-        left:14px;
-        padding:6px 10px;
-        font-size:13px;
+      .top-buttons{
+        top:10px;
+        left:10px;
+      }
+      .floating-cart{
+        right:10px;
+        bottom:10px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- ⭐ 回到首頁按鈕（已加入） -->
-  <a href="index.html" class="back-home">← 回到首頁</a>
+  <!-- 左上：回首頁 / 返回上一頁 -->
+  <div class="top-buttons">
+    <a href="index.html" class="top-btn">← 回到首頁</a>
+    <button type="button" class="top-btn" onclick="history.back()">⟵ 返回上一頁</button>
+  </div>
+
+  <!-- 右下：浮動購物車按鈕 -->
+  <a href="cart.html" class="floating-cart">
+    🛒 購物車
+  </a>
+
+  <!-- Loading 蒙版 -->
+  <div id="loading-overlay">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <div>處理中，請稍候…</div>
+    </div>
+  </div>
 
   <div class="page">
     <div class="product-layout">
 
-      <!-- 左：圖片區 -->
+      <!-- 左：圖片區（你的圖路徑保留不變） -->
       <div class="gallery-grid">
         <div class="gallery-item">
           <img src="assets/pic/效果图 (1).png" alt="正反面">
@@ -289,32 +364,55 @@
 <script>
   const CART_KEY = 'mulivelivek_cart';
 
-  function getCart(){const raw=localStorage.getItem(CART_KEY);return raw?JSON.parse(raw):[];}
-  function saveCart(cart){localStorage.setItem(CART_KEY,JSON.stringify(cart));}
+  function getCart(){
+    const raw = localStorage.getItem(CART_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }
+  function saveCart(cart){
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  }
 
-  let selectedSize=null;
-  const sizeBtns=document.querySelectorAll('.size-btn');
+  // 尺寸選擇
+  let selectedSize = null;
+  const sizeBtns = document.querySelectorAll('.size-btn');
   sizeBtns.forEach(btn=>{
     btn.addEventListener('click',()=>{
-      selectedSize=btn.dataset.size;
+      selectedSize = btn.dataset.size;
       sizeBtns.forEach(b=>b.classList.remove('is-active'));
       btn.classList.add('is-active');
     });
   });
 
-  const qty=document.getElementById('qty-input');
-  document.getElementById('qty-minus').onclick=()=>{qty.value=Math.max(1,qty.value-1);}
-  document.getElementById('qty-plus').onclick=()=>{qty.value=Number(qty.value)+1;}
+  // 數量 + / -
+  const qty = document.getElementById('qty-input');
+  document.getElementById('qty-minus').onclick = () => {
+    qty.value = Math.max(1, (Number(qty.value) || 1) - 1);
+  };
+  document.getElementById('qty-plus').onclick = () => {
+    qty.value = (Number(qty.value) || 1) + 1;
+  };
 
-  document.getElementById('add-to-cart-btn').onclick=()=>{
-    if(!selectedSize){alert("請先選擇尺寸 🙏");return;}
-    const q=Math.max(1,Number(qty.value)||1);
-    const cart=getCart();
-    const id='longsleeve-2025';
-    const exist=cart.find(item=>item.id===id && item.size===selectedSize);
+  // Loading 顯示 / 隱藏
+  const loadingOverlay = document.getElementById('loading-overlay');
+  function showLoading(){
+    loadingOverlay.style.display = 'flex';
+  }
 
-    if(exist){exist.qty+=q;}
-    else{
+  // 加入購物車
+  document.getElementById('add-to-cart-btn').onclick = () => {
+    if(!selectedSize){
+      alert("請先選擇尺寸 🙏");
+      return;
+    }
+    const q = Math.max(1, Number(qty.value) || 1);
+
+    const cart = getCart();
+    const id = 'longsleeve-2025';
+    const exist = cart.find(item => item.id === id && item.size === selectedSize);
+
+    if(exist){
+      exist.qty += q;
+    }else{
       cart.push({
         id,
         name:'初鹿部落年祭限定水洗長袖｜MULIVELIVEK 限定款',
@@ -325,7 +423,12 @@
       });
     }
     saveCart(cart);
-    window.location.href='cart.html';
+
+    // 顯示 loading，0.6 秒後跳到購物車（可自己調整時間）
+    showLoading();
+    setTimeout(()=>{
+      window.location.href = 'cart.html';
+    },600);
   };
 </script>
 
