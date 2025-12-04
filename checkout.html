@@ -351,7 +351,7 @@
     <div class="step-card" id="step-card"></div>
   </div>
 
-  <!-- 匯款確認彈窗（放在 script 上面） -->
+  <!-- 匯款確認彈窗 -->
   <div id="confirm-remit-modal" class="modal-overlay">
     <div class="modal-box">
       <div class="modal-title">請確認是否已完成匯款</div>
@@ -372,6 +372,10 @@
 <script>
   const CART_KEY = 'mulivelivek_cart';
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwMqCkFHdjd68wG_uf5OF6fT2xwf19fl34rujoeXU6bIIeR02bBcyvvPmAjKfnjL_t1/exec';
+
+  // ✅ 匯款截圖狀態
+  let hasScreenshot = false;
+  let screenshotFileName = '';
 
   function getCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -420,7 +424,9 @@
       sizeL: sizeCounts['L'],
       sizeXL: sizeCounts['XL'],
       size2XL: sizeCounts['2XL'],
-      size3XL: sizeCounts['3XL']
+      size3XL: sizeCounts['3XL'],
+      // ✅ 把截圖檔名也一併送到試算表（純文字紀錄）
+      screenshotName: sessionStorage.getItem('mulive_screenshot_name') || ''
     };
   }
 
@@ -531,6 +537,18 @@
         <label for="last5">匯款帳號後五碼</label>
         <input id="last5" type="text" maxlength="5" placeholder="例：12345" />
 
+        <!-- ✅ 匯款截圖上傳 -->
+        <label for="screenshot">匯款截圖上傳</label>
+        <input
+          id="screenshot"
+          type="file"
+          accept="image/*"
+          style="width:100%;padding:8px 0;border:none;background:transparent;"
+        />
+        <div id="screenshot-hint" style="font-size:12px;color:#7b6d5a;margin-top:4px;">
+          可從相簿選擇匯款成功畫面截圖，方便我們查詢。
+        </div>
+
         <label for="note">想對我們說的話（選填）</label>
         <textarea id="note" rows="3" placeholder="例：我愛初鹿部落、辛苦了。你們的鼓勵是我們最大的動力" 
           style="width:100%;padding:10px;border-radius:10px;border:1px solid #d0c8b7;font-size:14px;resize:none;"></textarea>
@@ -542,6 +560,33 @@
       `;
 
       renderOrderSummary();
+
+      // ✅ 匯款截圖 input 監聽
+      const screenshotInput = document.getElementById('screenshot');
+      const screenshotHint = document.getElementById('screenshot-hint');
+      hasScreenshot = false;
+      screenshotFileName = '';
+
+      if (screenshotInput) {
+        screenshotInput.addEventListener('change', () => {
+          if (screenshotInput.files && screenshotInput.files.length > 0) {
+            hasScreenshot = true;
+            screenshotFileName = screenshotInput.files[0].name || '';
+            sessionStorage.setItem('mulive_screenshot_name', screenshotFileName);
+            if (screenshotHint) {
+              screenshotHint.textContent = '已選擇檔案：' + screenshotFileName;
+            }
+          } else {
+            hasScreenshot = false;
+            screenshotFileName = '';
+            sessionStorage.removeItem('mulive_screenshot_name');
+            if (screenshotHint) {
+              screenshotHint.textContent =
+                '可從相簿選擇匯款成功畫面截圖，方便我們查詢。';
+            }
+          }
+        });
+      }
 
       document.getElementById('next-1').addEventListener('click', () => {
         const name = document.getElementById('name').value.trim();
@@ -609,17 +654,23 @@
     }
   }
 
-  // 彈窗兩顆按鈕（這裡直接在 DOM 建好後就綁）
+  // 彈窗兩顆按鈕
   const modalNoBtn  = document.getElementById("modal-no");
   const modalYesBtn = document.getElementById("modal-yes");
 
   if (modalNoBtn && modalYesBtn) {
+    // 尚未匯款 → 關閉彈窗，留在 Step1
     modalNoBtn.addEventListener("click", () => {
-      closeConfirmModal(); // 尚未匯款 → 關閉視窗，留在 Step1
+      closeConfirmModal();
     });
 
+    // 已匯款 → 必須先上傳截圖
     modalYesBtn.addEventListener("click", () => {
-      closeConfirmModal(); // 已匯款 → 關閉視窗並進 Step2
+      if (!hasScreenshot) {
+        alert('請先完成匯款並上傳匯款截圖 🙏');
+        return;
+      }
+      closeConfirmModal();
       currentStep = 2;
       renderStep();
     });
