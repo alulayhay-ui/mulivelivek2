@@ -373,10 +373,10 @@
   const CART_KEY   = 'mulivelivek_cart';
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwMqCkFHdjd68wG_uf5OF6fT2xwf19fl34rujoeXU6bIIeR02bBcyvvPmAjKfnjL_t1/exec';
 
-  // 匯款截圖相關狀態
-  let hasScreenshot    = false;
-  let remitImageBase64 = '';
-  let screenshotFileName = '';
+  // 匯款截圖狀態
+let hasScreenshot = false;        // 有沒有選截圖
+let screenshotFileName = '';      // 檔名
+let remitImageBase64 = '';        // data:image/png;base64,xxxx...
 
   function getCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -395,43 +395,43 @@
   }
 
   // 組訂單資料（會一起帶匯款截圖）
-  function buildOrderData(pickupMethod) {
-    const cart = getCart();
+function buildOrderData(pickupMethod) {
+  const cart = getCart();
 
-    const sizeCounts = { M: 0, L: 0, XL: 0, '2XL': 0, '3XL': 0 };
-    cart.forEach(i => {
-      if (sizeCounts[i.size] != null) {
-        sizeCounts[i.size] += i.qty;
-      }
-    });
+  const sizeCounts = { M: 0, L: 0, XL: 0, '2XL': 0, '3XL': 0 };
+  cart.forEach(i => {
+    if (sizeCounts[i.size] != null) {
+      sizeCounts[i.size] += i.qty;
+    }
+  });
 
-    const itemsString = cart
-      .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
-      .join('；');
+  const itemsString = cart
+    .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
+    .join('；');
 
-    const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
+  const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
 
-    return {
-      formName: 'Mulivelivek初鹿部落祭典商品',
-      name:  sessionStorage.getItem('mulive_name')  || '',
-      phone: sessionStorage.getItem('mulive_phone') || '',
-      last5: sessionStorage.getItem('mulive_last5') || '',
-      note:  sessionStorage.getItem('mulive_note')  || '',
-      items: itemsString,
-      total: total,
-      pickupMethod: pickupMethod || '',
-      createdAt: new Date().toISOString(),
-      sizeM:  sizeCounts['M'],
-      sizeL:  sizeCounts['L'],
-      sizeXL: sizeCounts['XL'],
-      size2XL: sizeCounts['2XL'],
-      size3XL: sizeCounts['3XL'],
+  return {
+    formName: 'Mulivelivek初鹿部落祭典商品',
+    name: sessionStorage.getItem('mulive_name') || '',
+    phone: sessionStorage.getItem('mulive_phone') || '',
+    last5: sessionStorage.getItem('mulive_last5') || '',
+    note: sessionStorage.getItem('mulive_note') || '',
+    items: itemsString,
+    total: total,
+    pickupMethod: pickupMethod || '',
+    createdAt: new Date().toISOString(),
+    sizeM: sizeCounts['M'],
+    sizeL: sizeCounts['L'],
+    sizeXL: sizeCounts['XL'],
+    size2XL: sizeCounts['2XL'],
+    size3XL: sizeCounts['3XL'],
 
-      // 匯款截圖
-      screenshotName: screenshotFileName || '',
-      remitImage:     remitImageBase64 || ''
-    };
-  }
+    // ★ 匯款截圖相關
+    screenshotName: screenshotFileName || sessionStorage.getItem('mulive_screenshot_name') || '',
+    remitImage: remitImageBase64 || ''
+  };
+}
 
   // 傳到 Google Apps Script
   function sendOrderToSheet(orderData) {
@@ -563,38 +563,7 @@
 
       renderOrderSummary();
 
-      // 匯款截圖 input 監聽 + 預覽
-      const remitInput  = document.getElementById('remit-image');
-      const previewWrap = document.getElementById('remit-image-preview-wrap');
-      const previewImg  = document.getElementById('remit-image-preview');
-
-      hasScreenshot     = false;
-      remitImageBase64  = '';
-      screenshotFileName = '';
-
-      if (remitInput) {
-        remitInput.addEventListener('change', () => {
-          const file = remitInput.files && remitInput.files[0];
-          if (!file) {
-            hasScreenshot = false;
-            remitImageBase64 = '';
-            screenshotFileName = '';
-            previewWrap.style.display = 'none';
-            previewImg.src = '';
-            return;
-          }
-          hasScreenshot = true;
-          screenshotFileName = file.name || '';
-
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            remitImageBase64 = e.target.result || '';
-            previewImg.src = remitImageBase64;
-            previewWrap.style.display = 'block';
-          };
-          reader.readAsDataURL(file); // data:image/png;base64,xxxx
-        });
-      }
+      renderOrderSummary
 
       // 下一步：先檢查資料，再跳出匯款確認彈窗
       document.getElementById('next-1').addEventListener('click', () => {
