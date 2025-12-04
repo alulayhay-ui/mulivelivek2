@@ -539,16 +539,13 @@
         <label for="last5">匯款帳號後五碼</label>
         <input id="last5" type="text" maxlength="5" placeholder="例：12345" />
 
-        <!-- ✅ 匯款截圖上傳 -->
-        <label for="screenshot">匯款截圖上傳</label>
-        <input
-          id="screenshot"
-          type="file"
-          accept="image/*"
-          style="width:100%;padding:8px 0;border:none;background:transparent;"
-        />
-        <div id="screenshot-hint" style="font-size:12px;color:#7b6d5a;margin-top:4px;">
-          可從相簿選擇匯款成功畫面截圖，方便我們查詢。
+         <label for="remit-image">匯款截圖（選擇相簿照片）</label>
+        <input id="remit-image" type="file" accept="image/*" />
+
+        <div id="remit-image-preview-wrap" style="margin-top:8px; display:none;">
+          <span style="font-size:12px;color:#7b6d5a;">預覽：</span>
+          <img id="remit-image-preview"
+               style="display:block;max-width:100%;border-radius:8px;margin-top:4px;" />
         </div>
 
         <label for="note">想對我們說的話（選填）</label>
