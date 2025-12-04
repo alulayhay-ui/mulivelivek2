@@ -255,7 +255,7 @@
       .wrap{margin-top:64px;}
     }
 
-    /* --- 匯款確認彈窗（含動畫） --- */
+    /* 匯款確認彈窗 */
     .modal-overlay{
       position: fixed;
       inset: 0;
@@ -370,13 +370,13 @@
   </div>
 
 <script>
-  const CART_KEY = 'mulivelivek_cart';
+  const CART_KEY   = 'mulivelivek_cart';
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwMqCkFHdjd68wG_uf5OF6fT2xwf19fl34rujoeXU6bIIeR02bBcyvvPmAjKfnjL_t1/exec';
 
-  // ✅ 匯款截圖狀態
-  let hasScreenshot = false;
+  // 匯款截圖相關狀態
+  let hasScreenshot    = false;
+  let remitImageBase64 = '';
   let screenshotFileName = '';
-  let remitImageBase64 = '';   // ← 匯款截圖的 base64 內容
 
   function getCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -394,7 +394,7 @@
     document.getElementById("confirm-remit-modal").classList.remove("is-open");
   }
 
-  // 1. 組訂單資料
+  // 組訂單資料（會一起帶匯款截圖）
   function buildOrderData(pickupMethod) {
     const cart = getCart();
 
@@ -412,27 +412,28 @@
     const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
 
     return {
-  formName: 'Mulivelivek初鹿部落祭典商品',
-  name: sessionStorage.getItem('mulive_name') || '',
-  phone: sessionStorage.getItem('mulive_phone') || '',
-  last5: sessionStorage.getItem('mulive_last5') || '',
-  note: sessionStorage.getItem('mulive_note') || '',
-  items: itemsString,
-  total: total,
-  pickupMethod: pickupMethod || '',
-  createdAt: new Date().toISOString(),
-  sizeM: sizeCounts['M'],
-  sizeL: sizeCounts['L'],
-  sizeXL: sizeCounts['XL'],
-  size2XL: sizeCounts['2XL'],
-  size3XL: sizeCounts['3XL'],
-  screenshotName: sessionStorage.getItem('mulive_screenshot_name') || '',
-  // ✅ 匯款截圖的 base64 資料
-  remitImage: remitImageBase64 || ''
-};
+      formName: 'Mulivelivek初鹿部落祭典商品',
+      name:  sessionStorage.getItem('mulive_name')  || '',
+      phone: sessionStorage.getItem('mulive_phone') || '',
+      last5: sessionStorage.getItem('mulive_last5') || '',
+      note:  sessionStorage.getItem('mulive_note')  || '',
+      items: itemsString,
+      total: total,
+      pickupMethod: pickupMethod || '',
+      createdAt: new Date().toISOString(),
+      sizeM:  sizeCounts['M'],
+      sizeL:  sizeCounts['L'],
+      sizeXL: sizeCounts['XL'],
+      size2XL: sizeCounts['2XL'],
+      size3XL: sizeCounts['3XL'],
+
+      // 匯款截圖
+      screenshotName: screenshotFileName || '',
+      remitImage:     remitImageBase64 || ''
+    };
   }
 
-  // 2. 傳到 Google Apps Script
+  // 傳到 Google Apps Script
   function sendOrderToSheet(orderData) {
     try {
       fetch(WEB_APP_URL, {
@@ -513,6 +514,7 @@
       stepIndicator.textContent = `Step ${currentStep} / ${TOTAL_STEPS}`;
     }
 
+    // Step 1：訂購人 + 匯款資訊 + 上傳截圖
     if (currentStep === 1) {
       stepCard.innerHTML = `
         <div id="summary-card" class="summary-card"></div>
@@ -539,7 +541,7 @@
         <label for="last5">匯款帳號後五碼</label>
         <input id="last5" type="text" maxlength="5" placeholder="例：12345" />
 
-         <label for="remit-image">匯款截圖（選擇相簿照片）</label>
+        <label for="remit-image">匯款截圖（選擇相簿照片）</label>
         <input id="remit-image" type="file" accept="image/*" />
 
         <div id="remit-image-preview-wrap" style="margin-top:8px; display:none;">
@@ -549,7 +551,8 @@
         </div>
 
         <label for="note">想對我們說的話（選填）</label>
-        <textarea id="note" rows="3" placeholder="例：我愛初鹿部落、辛苦了。你們的鼓勵是我們最大的動力" 
+        <textarea id="note" rows="3"
+          placeholder="例：我愛初鹿部落、辛苦了。你們的鼓勵是我們最大的動力"
           style="width:100%;padding:10px;border-radius:10px;border:1px solid #d0c8b7;font-size:14px;resize:none;"></textarea>
 
         <div class="btn-row">
@@ -560,71 +563,67 @@
 
       renderOrderSummary();
 
-      // ✅ 匯款截圖 input 監聽
-     const screenshotInput = document.getElementById('screenshot');
-const screenshotHint = document.getElementById('screenshot-hint');
-hasScreenshot = false;
-screenshotFileName = '';
-remitImageBase64 = '';
+      // 匯款截圖 input 監聽 + 預覽
+      const remitInput  = document.getElementById('remit-image');
+      const previewWrap = document.getElementById('remit-image-preview-wrap');
+      const previewImg  = document.getElementById('remit-image-preview');
 
-if (screenshotInput) {
-  screenshotInput.addEventListener('change', () => {
-    if (screenshotInput.files && screenshotInput.files.length > 0) {
-      const file = screenshotInput.files[0];
-      hasScreenshot = true;
-      screenshotFileName = file.name || '';
-      sessionStorage.setItem('mulive_screenshot_name', screenshotFileName);
-
-      // ✅ 讀出 base64
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        remitImageBase64 = e.target.result || '';
-        if (screenshotHint) {
-          screenshotHint.textContent = '已選擇檔案：' + screenshotFileName;
-        }
-      };
-      reader.readAsDataURL(file); // 讀成 data:image/png;base64,xxxxxx
-    } else {
-      hasScreenshot = false;
+      hasScreenshot     = false;
+      remitImageBase64  = '';
       screenshotFileName = '';
-      remitImageBase64 = '';
-      sessionStorage.removeItem('mulive_screenshot_name');
-      if (screenshotHint) {
-        screenshotHint.textContent =
-          '可從相簿選擇匯款成功畫面截圖，方便我們查詢。';
+
+      if (remitInput) {
+        remitInput.addEventListener('change', () => {
+          const file = remitInput.files && remitInput.files[0];
+          if (!file) {
+            hasScreenshot = false;
+            remitImageBase64 = '';
+            screenshotFileName = '';
+            previewWrap.style.display = 'none';
+            previewImg.src = '';
+            return;
+          }
+          hasScreenshot = true;
+          screenshotFileName = file.name || '';
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            remitImageBase64 = e.target.result || '';
+            previewImg.src = remitImageBase64;
+            previewWrap.style.display = 'block';
+          };
+          reader.readAsDataURL(file); // data:image/png;base64,xxxx
+        });
       }
-    }
-  });
-}
 
-     document.getElementById('next-1').addEventListener('click', () => {
-  const name = document.getElementById('name').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const last5 = document.getElementById('last5').value.trim();
-  const note = document.getElementById('note').value.trim();
+      // 下一步：先檢查資料，再跳出匯款確認彈窗
+      document.getElementById('next-1').addEventListener('click', () => {
+        const name = document.getElementById('name').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const last5 = document.getElementById('last5').value.trim();
+        const note = document.getElementById('note').value.trim();
 
-  // 基本必填
-  if (!name || !phone || !last5) {
-    alert('請填寫姓名、電話與匯款後五碼 🙏');
-    return;
-  }
+        if (!name || !phone || !last5) {
+          alert('請填寫姓名、電話與匯款後五碼 🙏');
+          return;
+        }
 
-  // ✅ 匯款後五碼一定要是「5 位數字」
-  if (!/^\d{5}$/.test(last5)) {
-    alert('匯款帳號後五碼請輸入 5 位數字 🙏');
-    return;
-  }
+        // 匯款後五碼必須是 5 位數字
+        if (!/^\d{5}$/.test(last5)) {
+          alert('匯款帳號後五碼請輸入 5 位數字 🙏');
+          return;
+        }
 
-  sessionStorage.setItem('mulive_name', name);
-  sessionStorage.setItem('mulive_phone', phone);
-  sessionStorage.setItem('mulive_last5', last5);
-  sessionStorage.setItem('mulive_note', note || '');
+        sessionStorage.setItem('mulive_name', name);
+        sessionStorage.setItem('mulive_phone', phone);
+        sessionStorage.setItem('mulive_last5', last5);
+        sessionStorage.setItem('mulive_note', note || '');
 
-  // 打開匯款確認彈窗
-  openConfirmModal();
-});
-    }
-    else if (currentStep === 2) {
+        openConfirmModal();
+      });
+
+    // Step 2：取貨方式
+    } else if (currentStep === 2) {
       stepIndicator.textContent = `Step 2 / ${TOTAL_STEPS}`;
       stepCard.innerHTML = `
         <div class="step-title">選擇取貨方式</div>
@@ -682,7 +681,7 @@ if (screenshotInput) {
 
     // 已匯款 → 必須先上傳截圖
     modalYesBtn.addEventListener("click", () => {
-      if (!hasScreenshot) {
+      if (!hasScreenshot || !remitImageBase64) {
         alert('請先完成匯款並上傳匯款截圖 🙏');
         return;
       }
