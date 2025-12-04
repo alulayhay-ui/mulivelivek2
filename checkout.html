@@ -411,26 +411,24 @@ function buildOrderData(pickupMethod) {
 
   const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
 
-  return {
-    formName: 'Mulivelivek初鹿部落祭典商品',
-    name: sessionStorage.getItem('mulive_name') || '',
-    phone: sessionStorage.getItem('mulive_phone') || '',
-    last5: sessionStorage.getItem('mulive_last5') || '',
-    note: sessionStorage.getItem('mulive_note') || '',
-    items: itemsString,
-    total: total,
-    pickupMethod: pickupMethod || '',
-    createdAt: new Date().toISOString(),
-    sizeM: sizeCounts['M'],
-    sizeL: sizeCounts['L'],
-    sizeXL: sizeCounts['XL'],
-    size2XL: sizeCounts['2XL'],
-    size3XL: sizeCounts['3XL'],
-
-    // ★ 匯款截圖相關
-    screenshotName: screenshotFileName || sessionStorage.getItem('mulive_screenshot_name') || '',
-    remitImage: remitImageBase64 || ''
-  };
+ return {
+  formName: 'Mulivelivek初鹿部落祭典商品',
+  name: sessionStorage.getItem('mulive_name') || '',
+  phone: sessionStorage.getItem('mulive_phone') || '',
+  last5: sessionStorage.getItem('mulive_last5') || '',
+  note: sessionStorage.getItem('mulive_note') || '',
+  items: itemsString,
+  total,
+  pickupMethod: pickupMethod || '',
+  createdAt: new Date().toISOString(),
+  sizeM: sizeCounts['M'],
+  sizeL: sizeCounts['L'],
+  sizeXL: sizeCounts['XL'],
+  size2XL: sizeCounts['2XL'],
+  size3XL: sizeCounts['3XL'],
+  screenshotName: screenshotFileName || '',
+  remitImage: remitImageBase64 || ''
+};
 }
 
   // 傳到 Google Apps Script
@@ -561,10 +559,53 @@ function buildOrderData(pickupMethod) {
         </div>
       `;
 
-      renderOrderSummary();
+     renderOrderSummary();
 
-      renderOrderSummary
+// ★ 匯款截圖 input 監聽
+const remitInput = document.getElementById('remit-image');
+const previewWrap = document.getElementById('remit-image-preview-wrap');
+const previewImg  = document.getElementById('remit-image-preview');
 
+// 每次進 Step1 先清空狀態
+hasScreenshot = false;
+screenshotFileName = '';
+remitImageBase64 = '';
+sessionStorage.removeItem('mulive_screenshot_name');
+
+if (remitInput) {
+  remitInput.addEventListener('change', () => {
+    const file = remitInput.files && remitInput.files[0];
+    if (!file) {
+      // 沒選檔 → 重置
+      hasScreenshot = false;
+      screenshotFileName = '';
+      remitImageBase64 = '';
+      sessionStorage.removeItem('mulive_screenshot_name');
+      if (previewWrap && previewImg) {
+        previewWrap.style.display = 'none';
+        previewImg.src = '';
+      }
+      return;
+    }
+
+    // 有選檔
+    hasScreenshot = true;
+    screenshotFileName = file.name || '';
+    sessionStorage.setItem('mulive_screenshot_name', screenshotFileName);
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      // ev.target.result 是 data:image/png;base64,xxxx
+      remitImageBase64 = ev.target.result || '';
+      if (previewWrap && previewImg) {
+        previewImg.src = remitImageBase64;
+        previewWrap.style.display = 'block';
+      }
+      console.log('hasScreenshot =', hasScreenshot);
+    };
+    reader.readAsDataURL(file);
+  });
+}
       // 下一步：先檢查資料，再跳出匯款確認彈窗
       document.getElementById('next-1').addEventListener('click', () => {
         const name = document.getElementById('name').value.trim();
@@ -642,23 +683,23 @@ function buildOrderData(pickupMethod) {
   const modalNoBtn  = document.getElementById("modal-no");
   const modalYesBtn = document.getElementById("modal-yes");
 
-  if (modalNoBtn && modalYesBtn) {
-    // 尚未匯款 → 關閉彈窗，留在 Step1
-    modalNoBtn.addEventListener("click", () => {
-      closeConfirmModal();
-    });
+if (modalNoBtn && modalYesBtn) {
+  // 尚未匯款 → 關閉彈窗，留在 Step1
+  modalNoBtn.addEventListener("click", () => {
+    closeConfirmModal();
+  });
 
-    // 已匯款 → 必須先上傳截圖
-    modalYesBtn.addEventListener("click", () => {
-      if (!hasScreenshot || !remitImageBase64) {
-        alert('請先完成匯款並上傳匯款截圖 🙏');
-        return;
-      }
-      closeConfirmModal();
-      currentStep = 2;
-      renderStep();
-    });
-  }
+  // 已匯款 → 必須先上傳截圖
+  modalYesBtn.addEventListener("click", () => {
+    if (!hasScreenshot) {
+      alert('請先完成匯款並上傳匯款截圖 🙏');
+      return;
+    }
+    closeConfirmModal();
+    currentStep = 2;
+    renderStep();
+  });
+}
 
   renderStep();
 </script>
