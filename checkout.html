@@ -588,25 +588,32 @@
         });
       }
 
-      document.getElementById('next-1').addEventListener('click', () => {
-        const name = document.getElementById('name').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const last5 = document.getElementById('last5').value.trim();
-        const note = document.getElementById('note').value.trim();
+     document.getElementById('next-1').addEventListener('click', () => {
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const last5 = document.getElementById('last5').value.trim();
+  const note = document.getElementById('note').value.trim();
 
-        if (!name || !phone || !last5) {
-          alert('請填寫姓名、電話與匯款後五碼 🙏');
-          return;
-        }
+  // 基本必填
+  if (!name || !phone || !last5) {
+    alert('請填寫姓名、電話與匯款後五碼 🙏');
+    return;
+  }
 
-        sessionStorage.setItem('mulive_name', name);
-        sessionStorage.setItem('mulive_phone', phone);
-        sessionStorage.setItem('mulive_last5', last5);
-        sessionStorage.setItem('mulive_note', note || '');
+  // ✅ 匯款後五碼一定要是「5 位數字」
+  if (!/^\d{5}$/.test(last5)) {
+    alert('匯款帳號後五碼請輸入 5 位數字 🙏');
+    return;
+  }
 
-        // 打開匯款確認彈窗
-        openConfirmModal();
-      });
+  sessionStorage.setItem('mulive_name', name);
+  sessionStorage.setItem('mulive_phone', phone);
+  sessionStorage.setItem('mulive_last5', last5);
+  sessionStorage.setItem('mulive_note', note || '');
+
+  // 打開匯款確認彈窗
+  openConfirmModal();
+});
     }
     else if (currentStep === 2) {
       stepIndicator.textContent = `Step 2 / ${TOTAL_STEPS}`;
