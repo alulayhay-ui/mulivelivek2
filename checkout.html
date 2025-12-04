@@ -376,6 +376,7 @@
   // ✅ 匯款截圖狀態
   let hasScreenshot = false;
   let screenshotFileName = '';
+  let remitImageBase64 = '';   // ← 匯款截圖的 base64 內容
 
   function getCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -411,23 +412,24 @@
     const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
 
     return {
-      formName: 'Mulivelivek初鹿部落祭典商品',
-      name: sessionStorage.getItem('mulive_name') || '',
-      phone: sessionStorage.getItem('mulive_phone') || '',
-      last5: sessionStorage.getItem('mulive_last5') || '',
-      note: sessionStorage.getItem('mulive_note') || '',
-      items: itemsString,
-      total: total,
-      pickupMethod: pickupMethod || '',
-      createdAt: new Date().toISOString(),
-      sizeM: sizeCounts['M'],
-      sizeL: sizeCounts['L'],
-      sizeXL: sizeCounts['XL'],
-      size2XL: sizeCounts['2XL'],
-      size3XL: sizeCounts['3XL'],
-      // ✅ 把截圖檔名也一併送到試算表（純文字紀錄）
-      screenshotName: sessionStorage.getItem('mulive_screenshot_name') || ''
-    };
+  formName: 'Mulivelivek初鹿部落祭典商品',
+  name: sessionStorage.getItem('mulive_name') || '',
+  phone: sessionStorage.getItem('mulive_phone') || '',
+  last5: sessionStorage.getItem('mulive_last5') || '',
+  note: sessionStorage.getItem('mulive_note') || '',
+  items: itemsString,
+  total: total,
+  pickupMethod: pickupMethod || '',
+  createdAt: new Date().toISOString(),
+  sizeM: sizeCounts['M'],
+  sizeL: sizeCounts['L'],
+  sizeXL: sizeCounts['XL'],
+  size2XL: sizeCounts['2XL'],
+  size3XL: sizeCounts['3XL'],
+  screenshotName: sessionStorage.getItem('mulive_screenshot_name') || '',
+  // ✅ 匯款截圖的 base64 資料
+  remitImage: remitImageBase64 || ''
+};
   }
 
   // 2. 傳到 Google Apps Script
@@ -562,31 +564,41 @@
       renderOrderSummary();
 
       // ✅ 匯款截圖 input 監聽
-      const screenshotInput = document.getElementById('screenshot');
-      const screenshotHint = document.getElementById('screenshot-hint');
+     const screenshotInput = document.getElementById('screenshot');
+const screenshotHint = document.getElementById('screenshot-hint');
+hasScreenshot = false;
+screenshotFileName = '';
+remitImageBase64 = '';
+
+if (screenshotInput) {
+  screenshotInput.addEventListener('change', () => {
+    if (screenshotInput.files && screenshotInput.files.length > 0) {
+      const file = screenshotInput.files[0];
+      hasScreenshot = true;
+      screenshotFileName = file.name || '';
+      sessionStorage.setItem('mulive_screenshot_name', screenshotFileName);
+
+      // ✅ 讀出 base64
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        remitImageBase64 = e.target.result || '';
+        if (screenshotHint) {
+          screenshotHint.textContent = '已選擇檔案：' + screenshotFileName;
+        }
+      };
+      reader.readAsDataURL(file); // 讀成 data:image/png;base64,xxxxxx
+    } else {
       hasScreenshot = false;
       screenshotFileName = '';
-
-      if (screenshotInput) {
-        screenshotInput.addEventListener('change', () => {
-          if (screenshotInput.files && screenshotInput.files.length > 0) {
-            hasScreenshot = true;
-            screenshotFileName = screenshotInput.files[0].name || '';
-            sessionStorage.setItem('mulive_screenshot_name', screenshotFileName);
-            if (screenshotHint) {
-              screenshotHint.textContent = '已選擇檔案：' + screenshotFileName;
-            }
-          } else {
-            hasScreenshot = false;
-            screenshotFileName = '';
-            sessionStorage.removeItem('mulive_screenshot_name');
-            if (screenshotHint) {
-              screenshotHint.textContent =
-                '可從相簿選擇匯款成功畫面截圖，方便我們查詢。';
-            }
-          }
-        });
+      remitImageBase64 = '';
+      sessionStorage.removeItem('mulive_screenshot_name');
+      if (screenshotHint) {
+        screenshotHint.textContent =
+          '可從相簿選擇匯款成功畫面截圖，方便我們查詢。';
       }
+    }
+  });
+}
 
      document.getElementById('next-1').addEventListener('click', () => {
   const name = document.getElementById('name').value.trim();
