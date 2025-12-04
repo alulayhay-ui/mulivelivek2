@@ -394,44 +394,39 @@
     document.getElementById("confirm-remit-modal").classList.remove("is-open");
   }
 
-  // 組訂單資料（會一起帶匯款截圖）
-  function buildOrderData(pickupMethod) {
-    const cart = getCart();
+function buildOrderData(pickupMethod) {
+  const cart = getCart();
 
-    const sizeCounts = { M: 0, L: 0, XL: 0, '2XL': 0, '3XL': 0 };
-    cart.forEach(i => {
-      if (sizeCounts[i.size] != null) {
-        sizeCounts[i.size] += i.qty;
-      }
-    });
+  const sizeCounts = { M: 0, L: 0, XL: 0, '2XL': 0, '3XL': 0 };
+  cart.forEach(i => {
+    if (sizeCounts[i.size] != null) sizeCounts[i.size] += i.qty;
+  });
 
-    const itemsString = cart
-      .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
-      .join('；');
+  const itemsString = cart
+    .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
+    .join('；');
 
-    const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
+  const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
 
-    return {
-      formName: 'Mulivelivek初鹿部落祭典商品',
-      name:  sessionStorage.getItem('mulive_name')  || '',
-      phone: sessionStorage.getItem('mulive_phone') || '',
-      last5: sessionStorage.getItem('mulive_last5') || '',
-      note:  sessionStorage.getItem('mulive_note')  || '',
-      items: itemsString,
-      total: total,
-      pickupMethod: pickupMethod || '',
-      createdAt: new Date().toISOString(),
-      sizeM:  sizeCounts['M'],
-      sizeL:  sizeCounts['L'],
-      sizeXL: sizeCounts['XL'],
-      size2XL: sizeCounts['2XL'],
-      size3XL: sizeCounts['3XL'],
-
-      // 匯款截圖
-      screenshotName: screenshotFileName || '',
-      remitImage:     remitImageBase64 || ''
-    };
-  }
+  return {
+    formName: 'Mulivelivek初鹿部落祭典商品',
+    name:  sessionStorage.getItem('mulive_name')  || '',
+    phone: sessionStorage.getItem('mulive_phone') || '',
+    last5: sessionStorage.getItem('mulive_last5') || '',
+    note:  sessionStorage.getItem('mulive_note')  || '',
+    items: itemsString,
+    total: total,
+    pickupMethod: pickupMethod || '',
+    createdAt: new Date().toISOString(),
+    sizeM:  sizeCounts['M'],
+    sizeL:  sizeCounts['L'],
+    sizeXL: sizeCounts['XL'],
+    size2XL: sizeCounts['2XL'],
+    size3XL: sizeCounts['3XL'],
+    screenshotName: sessionStorage.getItem('mulive_screenshot_name') || '',
+    remitImage: remitImageBase64 || ''          // ★ 這裡一定要有
+  };
+}
 
   // 傳到 Google Apps Script
   function sendOrderToSheet(orderData) {
@@ -515,112 +510,118 @@
     }
 
     // Step 1：訂購人 + 匯款資訊 + 上傳截圖
-    if (currentStep === 1) {
-      stepCard.innerHTML = `
-        <div id="summary-card" class="summary-card"></div>
+ if (currentStep === 1) {
+  stepCard.innerHTML = `
+    <div id="summary-card" class="summary-card"></div>
 
-        <div class="step-title">訂購人資訊 & 匯款資料</div>
-        <div class="step-desc">
-          請確認下方訂單內容，並填寫你的姓名、電話與匯款帳號後五碼，方便我們聯絡與對帳。
-        </div>
+    <div class="step-title">訂購人資訊 & 匯款資料</div>
+    <div class="step-desc">
+      請確認下方訂單內容，並填寫你的姓名、電話與匯款帳號後五碼，方便我們聯絡與對帳。
+    </div>
 
-        <label for="name">姓名</label>
-        <input id="name" type="text" placeholder="例：鄭彥軍" />
+    <label for="name">姓名</label>
+    <input id="name" type="text" placeholder="例：鄭彥軍" />
 
-        <label for="phone">電話</label>
-        <input id="phone" type="tel" placeholder="例：0910-558-302" />
+    <label for="phone">電話</label>
+    <input id="phone" type="tel" placeholder="例：0910-558-302" />
 
-        <div class="remit-box">
-          <strong>💰 匯款資訊</strong>
-          初鹿青年會帳戶<br/>
-          銀行代碼：823（將來銀行）<br/>
-          帳號：88680977418900<br/>
-          <span style="display:block;margin-top:6px;">（有族人想贊助也是匯這裡~~）</span>
-        </div>
+    <div class="remit-box">
+      <strong>💰 匯款資訊</strong>
+      初鹿青年會帳戶<br/>
+      銀行代碼：823（將來銀行）<br/>
+      帳號：88680977418900<br/>
+      <span style="display:block;margin-top:6px;">（有族人想贊助也是匯這裡~~）</span>
+    </div>
 
-        <label for="last5">匯款帳號後五碼</label>
-        <input id="last5" type="text" maxlength="5" placeholder="例：12345" />
+    <label for="last5">匯款帳號後五碼</label>
+    <input id="last5" type="text" maxlength="5" placeholder="例：12345" />
 
-        <label for="remit-image">匯款截圖（選擇相簿照片）</label>
-        <input id="remit-image" type="file" accept="image/*" />
+    <!-- ✅ 匯款截圖：id 一定要叫 remit-image -->
+    <label for="remit-image">匯款截圖（選擇相簿照片）</label>
+    <input id="remit-image" type="file" accept="image/*" />
 
-        <div id="remit-image-preview-wrap" style="margin-top:8px; display:none;">
-          <span style="font-size:12px;color:#7b6d5a;">預覽：</span>
-          <img id="remit-image-preview"
-               style="display:block;max-width:100%;border-radius:8px;margin-top:4px;" />
-        </div>
+    <div id="remit-image-preview-wrap" style="margin-top:8px; display:none;">
+      <span style="font-size:12px;color:#7b6d5a;">預覽：</span>
+      <img id="remit-image-preview"
+           style="display:block;max-width:100%;border-radius:8px;margin-top:4px;" />
+    </div>
 
-        <label for="note">想對我們說的話（選填）</label>
-        <textarea id="note" rows="3"
-          placeholder="例：我愛初鹿部落、辛苦了。你們的鼓勵是我們最大的動力"
-          style="width:100%;padding:10px;border-radius:10px;border:1px solid #d0c8b7;font-size:14px;resize:none;"></textarea>
+    <label for="note">想對我們說的話（選填）</label>
+    <textarea id="note" rows="3" placeholder="例：我愛初鹿部落、辛苦了。你們的鼓勵是我們最大的動力" 
+      style="width:100%;padding:10px;border-radius:10px;border:1px solid #d0c8b7;font-size:14px;resize:none;"></textarea>
 
-        <div class="btn-row">
-          <button class="btn btn-ghost" onclick="window.location.href='cart.html'">← 返回購物車</button>
-          <button class="btn btn-primary" id="next-1">下一步</button>
-        </div>
-      `;
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="window.location.href='cart.html'">← 返回購物車</button>
+      <button class="btn btn-primary" id="next-1">下一步</button>
+    </div>
+  `;
 
-      renderOrderSummary();
+  renderOrderSummary();
 
-      // 匯款截圖 input 監聽 + 預覽
-      const remitInput  = document.getElementById('remit-image');
-      const previewWrap = document.getElementById('remit-image-preview-wrap');
-      const previewImg  = document.getElementById('remit-image-preview');
+  /* ✅ 匯款截圖 input 監聽（這段以前抓的是錯的 id） */
+  const screenshotInput  = document.getElementById('remit-image');
+  const previewWrap      = document.getElementById('remit-image-preview-wrap');
+  const previewImg       = document.getElementById('remit-image-preview');
 
-      hasScreenshot     = false;
-      remitImageBase64  = '';
-      screenshotFileName = '';
+  hasScreenshot    = false;
+  screenshotFileName = '';
+  remitImageBase64 = '';
 
-      if (remitInput) {
-        remitInput.addEventListener('change', () => {
-          const file = remitInput.files && remitInput.files[0];
-          if (!file) {
-            hasScreenshot = false;
-            remitImageBase64 = '';
-            screenshotFileName = '';
-            previewWrap.style.display = 'none';
-            previewImg.src = '';
-            return;
-          }
-          hasScreenshot = true;
-          screenshotFileName = file.name || '';
+  if (screenshotInput) {
+    screenshotInput.addEventListener('change', () => {
+      if (screenshotInput.files && screenshotInput.files.length > 0) {
+        const file = screenshotInput.files[0];
+        hasScreenshot     = true;
+        screenshotFileName = file.name || '';
+        sessionStorage.setItem('mulive_screenshot_name', screenshotFileName);
 
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            remitImageBase64 = e.target.result || '';
-            previewImg.src = remitImageBase64;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          remitImageBase64 = e.target.result || ''; // data:image/png;base64,....
+          if (previewWrap && previewImg) {
             previewWrap.style.display = 'block';
-          };
-          reader.readAsDataURL(file); // data:image/png;base64,xxxx
-        });
+            previewImg.src = remitImageBase64;
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        hasScreenshot      = false;
+        screenshotFileName = '';
+        remitImageBase64   = '';
+        sessionStorage.removeItem('mulive_screenshot_name');
+
+        if (previewWrap && previewImg) {
+          previewWrap.style.display = 'none';
+          previewImg.removeAttribute('src');
+        }
       }
+    });
+  }
 
-      // 下一步：先檢查資料，再跳出匯款確認彈窗
-      document.getElementById('next-1').addEventListener('click', () => {
-        const name = document.getElementById('name').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const last5 = document.getElementById('last5').value.trim();
-        const note = document.getElementById('note').value.trim();
+  document.getElementById('next-1').addEventListener('click', () => {
+    const name  = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const last5 = document.getElementById('last5').value.trim();
+    const note  = document.getElementById('note').value.trim();
 
-        if (!name || !phone || !last5) {
-          alert('請填寫姓名、電話與匯款後五碼 🙏');
-          return;
-        }
+    if (!name || !phone || !last5) {
+      alert('請填寫姓名、電話與匯款後五碼 🙏');
+      return;
+    }
+    if (!/^\d{5}$/.test(last5)) {
+      alert('匯款帳號後五碼請輸入 5 位數字 🙏');
+      return;
+    }
 
-        // 匯款後五碼必須是 5 位數字
-        if (!/^\d{5}$/.test(last5)) {
-          alert('匯款帳號後五碼請輸入 5 位數字 🙏');
-          return;
-        }
+    sessionStorage.setItem('mulive_name',  name);
+    sessionStorage.setItem('mulive_phone', phone);
+    sessionStorage.setItem('mulive_last5', last5);
+    sessionStorage.setItem('mulive_note',  note || '');
 
-        sessionStorage.setItem('mulive_name', name);
-        sessionStorage.setItem('mulive_phone', phone);
-        sessionStorage.setItem('mulive_last5', last5);
-        sessionStorage.setItem('mulive_note', note || '');
+    openConfirmModal();
+  });
+}
 
-        openConfirmModal();
-      });
 
     // Step 2：取貨方式
     } else if (currentStep === 2) {
