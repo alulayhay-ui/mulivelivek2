@@ -367,6 +367,22 @@
         right:10px;
         bottom:10px;
       }
+      /* 修正尺碼表圖片不超出 container */
+.product-size-img {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  display: block;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+/* 如果商品頁使用 grid，確保圖片區塊不被強制放大 */
+.product-size-block {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
     }
   </style>
 </head>
@@ -399,7 +415,7 @@
       <div class="mini-cart-info">
         <div class="mini-cart-name">初鹿部落年祭限定水洗長袖｜MULIVELIVEK 限定款</div>
         <div id="mini-cart-detail" class="mini-cart-detail">
-          <!-- 這裡會用 JS 更新尺寸 -->
+          <!-- 這裡會用 JS 更新 -->
           M，淺灰水洗＋粉色字體
         </div>
       </div>
