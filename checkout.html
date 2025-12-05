@@ -653,16 +653,38 @@ if (remitInput) {
           hideLoading();
           clearCart();
           stepIndicator.textContent = '完成';
-          stepCard.innerHTML = `
-            <div class="step-title">訂購完成</div>
-            <div class="success-text">
-              感謝你的訂購！<br/>
-              我們已收到你的訂單與匯款資訊，<br/>
-              確認收到款項後會用簡訊通知！，<br/>
-              請耐心等待衣服的到來，<br/>
-              巴拉冠自取相關時間，將再另外通知你。🌾
-            </div>
-          `;
+         stepCard.innerHTML = `
+  <div class="step-title">訂購完成</div>
+  <div class="success-text">
+    感謝你的訂購！<br/>
+    我們已收到你的訂單與匯款資訊，<br/>
+    確認收到款項後會用簡訊通知！<br/>
+    請耐心等待衣服的到來，<br/>
+    巴拉冠自取相關時間，將再另外通知你。🌾
+  </div>
+
+  <div style="
+    background:#f7f3ec;
+    border:1px solid #e3ddcf;
+    border-radius:14px;
+    padding:16px;
+    margin-top:20px;
+    text-align:center;
+    font-size:14px;
+    line-height:1.7;
+  ">
+    <strong>加入 Mulivelivek 初鹿部落官方 LINE</strong><br>
+    🔗 <strong>@576myfau</strong><br>
+    <a href="https://lin.ee/vtlK2fuB" target="_blank" 
+       style="color:#c58543; font-weight:600; text-decoration:none;">
+       https://lin.ee/vtlK2fuB
+    </a>
+    <br>
+    <span style="font-size:13px; color:#7b6d5a;">
+      可接收最新消息及查帳通知
+    </span>
+  </div>
+`;
         }, 700);
       });
 
