@@ -374,9 +374,9 @@
   const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwMqCkFHdjd68wG_uf5OF6fT2xwf19fl34rujoeXU6bIIeR02bBcyvvPmAjKfnjL_t1/exec';
 
   // 匯款截圖狀態
-let hasScreenshot = false;        // 有沒有選截圖
-let screenshotFileName = '';      // 檔名
-let remitImageBase64 = '';        // data:image/png;base64,xxxx...
+  let hasScreenshot = false;        // 有沒有選截圖
+  let screenshotFileName = '';      // 檔名
+  let remitImageBase64 = '';        // data:image/png;base64,xxxx...
 
   function getCart() {
     const raw = localStorage.getItem(CART_KEY);
@@ -395,52 +395,52 @@ let remitImageBase64 = '';        // data:image/png;base64,xxxx...
   }
 
   // 組訂單資料（會一起帶匯款截圖）
-function buildOrderData(pickupMethod) {
-  const cart = getCart();
+  function buildOrderData(pickupMethod) {
+    const cart = getCart();
 
-  const sizeCounts = { M: 0, L: 0, XL: 0, '2XL': 0, '3XL': 0 };
-  cart.forEach(i => {
-    if (sizeCounts[i.size] != null) {
-      sizeCounts[i.size] += i.qty;
-    }
-  });
+    const sizeCounts = { M: 0, L: 0, XL: 0, '2XL': 0, '3XL': 0 };
+    cart.forEach(i => {
+      if (sizeCounts[i.size] != null) {
+        sizeCounts[i.size] += i.qty;
+      }
+    });
 
-  const itemsString = cart
-    .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
-    .join('；');
+    const itemsString = cart
+      .map(i => `${i.name}（尺寸：${i.size}，數量：${i.qty}）`)
+      .join('；');
 
-  const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
+    const total = cart.reduce((t, i) => t + (i.price || 0) * (i.qty || 0), 0);
 
- return {
-  formName: 'Mulivelivek初鹿部落祭典商品',
-  name: sessionStorage.getItem('mulive_name') || '',
-  phone: sessionStorage.getItem('mulive_phone') || '',
-  last5: sessionStorage.getItem('mulive_last5') || '',
-  note: sessionStorage.getItem('mulive_note') || '',
-  items: itemsString,
-  total,
-  pickupMethod: pickupMethod || '',
-  createdAt: new Date().toISOString(),
-  sizeM: sizeCounts['M'],
-  sizeL: sizeCounts['L'],
-  sizeXL: sizeCounts['XL'],
-  size2XL: sizeCounts['2XL'],
-  size3XL: sizeCounts['3XL'],
-  screenshotName: screenshotFileName || '',
-  remitImage: remitImageBase64 || ''
-};
-}
+    return {
+      formName: 'Mulivelivek初鹿部落祭典商品',
+      name: sessionStorage.getItem('mulive_name') || '',
+      phone: sessionStorage.getItem('mulive_phone') || '',
+      last5: sessionStorage.getItem('mulive_last5') || '',
+      note: sessionStorage.getItem('mulive_note') || '',
+      items: itemsString,
+      total,
+      pickupMethod: pickupMethod || '',
+      createdAt: new Date().toISOString(),
+      sizeM: sizeCounts['M'],
+      sizeL: sizeCounts['L'],
+      sizeXL: sizeCounts['XL'],
+      size2XL: sizeCounts['2XL'],
+      size3XL: sizeCounts['3XL'],
+      screenshotName: screenshotFileName || '',
+      remitImage: remitImageBase64 || ''
+    };
+  }
 
-  // 傳到 Google Apps Script
+  // 傳到 Google Apps Script（要回傳 Promise，並加 keepalive）
   function sendOrderToSheet(orderData) {
-    try {
-      fetch(WEB_APP_URL, {
-        method: 'POST',
-        body: JSON.stringify(orderData)
-      });
-    } catch (err) {
+    return fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify(orderData),
+      keepalive: true   // 手機即將跳轉頁面時也盡量送完
+    }).catch(err => {
       console.error('送出到試算表失敗（網路層）', err);
-    }
+      throw err;
+    });
   }
 
   let currentStep = 1;
@@ -512,7 +512,7 @@ function buildOrderData(pickupMethod) {
       stepIndicator.textContent = `Step ${currentStep} / ${TOTAL_STEPS}`;
     }
 
-    // Step 1：訂購人 + 匯款資訊 + 上傳截圖
+    // ------- Step 1：訂購人 + 匯款資訊 + 上傳截圖 -------
     if (currentStep === 1) {
       stepCard.innerHTML = `
         <div id="summary-card" class="summary-card"></div>
@@ -559,53 +559,49 @@ function buildOrderData(pickupMethod) {
         </div>
       `;
 
-     renderOrderSummary();
+      renderOrderSummary();
 
-// ★ 匯款截圖 input 監聽
-const remitInput = document.getElementById('remit-image');
-const previewWrap = document.getElementById('remit-image-preview-wrap');
-const previewImg  = document.getElementById('remit-image-preview');
+      // 匯款截圖 input 監聽
+      const remitInput = document.getElementById('remit-image');
+      const previewWrap = document.getElementById('remit-image-preview-wrap');
+      const previewImg  = document.getElementById('remit-image-preview');
 
-// 每次進 Step1 先清空狀態
-hasScreenshot = false;
-screenshotFileName = '';
-remitImageBase64 = '';
-sessionStorage.removeItem('mulive_screenshot_name');
-
-if (remitInput) {
-  remitInput.addEventListener('change', () => {
-    const file = remitInput.files && remitInput.files[0];
-    if (!file) {
-      // 沒選檔 → 重置
       hasScreenshot = false;
       screenshotFileName = '';
       remitImageBase64 = '';
       sessionStorage.removeItem('mulive_screenshot_name');
-      if (previewWrap && previewImg) {
-        previewWrap.style.display = 'none';
-        previewImg.src = '';
-      }
-      return;
-    }
 
-    // 有選檔
-    hasScreenshot = true;
-    screenshotFileName = file.name || '';
-    sessionStorage.setItem('mulive_screenshot_name', screenshotFileName);
+      if (remitInput) {
+        remitInput.addEventListener('change', () => {
+          const file = remitInput.files && remitInput.files[0];
+          if (!file) {
+            hasScreenshot = false;
+            screenshotFileName = '';
+            remitImageBase64 = '';
+            sessionStorage.removeItem('mulive_screenshot_name');
+            if (previewWrap && previewImg) {
+              previewWrap.style.display = 'none';
+              previewImg.src = '';
+            }
+            return;
+          }
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      // ev.target.result 是 data:image/png;base64,xxxx
-      remitImageBase64 = ev.target.result || '';
-      if (previewWrap && previewImg) {
-        previewImg.src = remitImageBase64;
-        previewWrap.style.display = 'block';
+          hasScreenshot = true;
+          screenshotFileName = file.name || '';
+          sessionStorage.setItem('mulive_screenshot_name', screenshotFileName);
+
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            remitImageBase64 = ev.target.result || '';
+            if (previewWrap && previewImg) {
+              previewImg.src = remitImageBase64;
+              previewWrap.style.display = 'block';
+            }
+          };
+          reader.readAsDataURL(file);
+        });
       }
-      console.log('hasScreenshot =', hasScreenshot);
-    };
-    reader.readAsDataURL(file);
-  });
-}
+
       // 下一步：先檢查資料，再跳出匯款確認彈窗
       document.getElementById('next-1').addEventListener('click', () => {
         const name = document.getElementById('name').value.trim();
@@ -617,8 +613,6 @@ if (remitInput) {
           alert('請填寫姓名、電話與匯款後五碼 🙏');
           return;
         }
-
-        // 匯款後五碼必須是 5 位數字
         if (!/^\d{5}$/.test(last5)) {
           alert('匯款帳號後五碼請輸入 5 位數字 🙏');
           return;
@@ -632,7 +626,7 @@ if (remitInput) {
         openConfirmModal();
       });
 
-    // Step 2：取貨方式
+    // ------- Step 2：取貨方式 -------
     } else if (currentStep === 2) {
       stepIndicator.textContent = `Step 2 / ${TOTAL_STEPS}`;
       stepCard.innerHTML = `
@@ -644,59 +638,63 @@ if (remitInput) {
         </div>
       `;
 
-      document.getElementById('btn-pickup').addEventListener('click', () => {
+      // 巴拉冠自取：不離開本站，成功率本來就很高，但還是 await 一下
+      document.getElementById('btn-pickup').addEventListener('click', async () => {
         const orderData = buildOrderData('巴拉冠自取');
-        sendOrderToSheet(orderData);
-
         showLoading('建立訂單中…');
-        setTimeout(() => {
-          hideLoading();
-          clearCart();
-          stepIndicator.textContent = '完成';
-         stepCard.innerHTML = `
-  <div class="step-title">訂購完成</div>
-  <div class="success-text">
-    感謝你的訂購！<br/>
-    我們已收到你的訂單與匯款資訊，<br/>
-    確認收到款項後會用簡訊通知！<br/>
-    請耐心等待衣服的到來，<br/>
-    巴拉冠自取相關時間，將再另外通知你。🌾
-  </div>
+        try {
+          await sendOrderToSheet(orderData);
+        } catch (e) {
+          console.error('寫入試算表失敗(巴拉冠自取)：', e);
+        }
+        hideLoading();
+        clearCart();
+        stepIndicator.textContent = '完成';
+        stepCard.innerHTML = `
+          <div class="step-title">訂購完成</div>
+          <div class="success-text">
+            感謝你的訂購！<br/>
+            我們已收到你的訂單與匯款資訊，<br/>
+            確認收到款項後會用簡訊通知！<br/>
+            請耐心等待衣服的到來，<br/>
+            巴拉冠自取相關時間，將再另外通知你。🌾
+          </div>
 
-  <div style="
-    background:#f7f3ec;
-    border:1px solid #e3ddcf;
-    border-radius:14px;
-    padding:16px;
-    margin-top:20px;
-    text-align:center;
-    font-size:14px;
-    line-height:1.7;
-  ">
-    <strong>加入 Mulivelivek 初鹿部落官方 LINE</strong><br>
-    🔗 <strong>@576myfau</strong><br>
-    <a href="https://lin.ee/vtlK2fuB" target="_blank" 
-       style="color:#c58543; font-weight:600; text-decoration:none;">
-       https://lin.ee/vtlK2fuB
-    </a>
-    <br>
-    <span style="font-size:13px; color:#7b6d5a;">
-      可接收最新消息及查帳通知
-    </span>
-  </div>
-`;
-        }, 700);
+          <div style="
+            background:#f7f3ec;
+            border:1px solid #e3ddcf;
+            border-radius:14px;
+            padding:16px;
+            margin-top:20px;
+            text-align:center;
+            font-size:14px;
+            line-height:1.7;
+          ">
+            <strong>加入 Mulivelivek 初鹿部落官方 LINE</strong><br>
+            🔗 <strong>@576myfau</strong><br>
+            <a href="https://lin.ee/vtlK2fuB" target="_blank" 
+               style="color:#c58543; font-weight:600; text-decoration:none;">
+               https://lin.ee/vtlK2fuB
+            </a>
+            <br>
+            <span style="font-size:13px; color:#7b6d5a;">
+              可接收最新消息及查帳通知
+            </span>
+          </div>
+        `;
       });
 
-      document.getElementById('btn-711').addEventListener('click', () => {
+      // 7-11 店到店：一定要等寫入完才跳轉
+      document.getElementById('btn-711').addEventListener('click', async () => {
         const orderData = buildOrderData('7-11 店到店');
-        sendOrderToSheet(orderData);
-
         showLoading('前往 7-11 取貨設定中…');
-        setTimeout(() => {
-          clearCart();
-          window.location.href = 'https://myship.7-11.com.tw/cart/confirm/GM2511309292297';
-        }, 700);
+        try {
+          await sendOrderToSheet(orderData);
+        } catch (e) {
+          console.error('寫入試算表失敗(7-11)：', e);
+        }
+        clearCart();
+        window.location.href = 'https://myship.7-11.com.tw/cart/confirm/GM2511309292297';
       });
     }
   }
@@ -705,23 +703,23 @@ if (remitInput) {
   const modalNoBtn  = document.getElementById("modal-no");
   const modalYesBtn = document.getElementById("modal-yes");
 
-if (modalNoBtn && modalYesBtn) {
-  // 尚未匯款 → 關閉彈窗，留在 Step1
-  modalNoBtn.addEventListener("click", () => {
-    closeConfirmModal();
-  });
+  if (modalNoBtn && modalYesBtn) {
+    // 尚未匯款 → 關閉彈窗，留在 Step1
+    modalNoBtn.addEventListener("click", () => {
+      closeConfirmModal();
+    });
 
-  // 已匯款 → 必須先上傳截圖
-  modalYesBtn.addEventListener("click", () => {
-    if (!hasScreenshot) {
-      alert('請先完成匯款並上傳匯款截圖 🙏');
-      return;
-    }
-    closeConfirmModal();
-    currentStep = 2;
-    renderStep();
-  });
-}
+    // 已匯款 → 必須先上傳截圖
+    modalYesBtn.addEventListener("click", () => {
+      if (!hasScreenshot) {
+        alert('請先完成匯款並上傳匯款截圖 🙏');
+        return;
+      }
+      closeConfirmModal();
+      currentStep = 2;
+      renderStep();
+    });
+  }
 
   renderStep();
 </script>
