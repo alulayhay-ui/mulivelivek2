@@ -431,21 +431,19 @@
     };
   }
 
-  // ✅ 只要這一段，用這個完整覆蓋你原本的 sendOrderToSheet
+// ✅ 這一段直接覆蓋你現在的 sendOrderToSheet
 
 async function sendOrderToSheet(orderData) {
   try {
     const res = await fetch(WEB_APP_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'   // 告訴後端是 JSON（比較乾淨）
-      },
+      mode: 'no-cors',            // ⬅️ 避免 CORS / preflight
       body: JSON.stringify(orderData)
-      // 🚫 不要再用 keepalive，因為有大圖會超過 64KB 直接 Failed to fetch
+      // ❌ 不要加 headers: { 'Content-Type': ... }，不然又會 preflight
     });
 
-    const text = await res.text();
-    console.log('Sheets 回應：', res.status, text);
+    // no-cors 的回應會是 opaque，看不到內容，但沒關係，我們只要送出去
+    console.log('送出到試算表完成，response type =', res.type);
   } catch (err) {
     console.error('送出到試算表失敗（網路層）', err);
   }
