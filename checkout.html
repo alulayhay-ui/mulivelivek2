@@ -431,19 +431,25 @@
     };
   }
 
-  // ✅ 改成 async，並加 keepalive，確保跳轉前有把資料送出去
-  async function sendOrderToSheet(orderData) {
-    try {
-      const res = await fetch(WEB_APP_URL, {
-        method: 'POST',
-        body: JSON.stringify(orderData),
-        keepalive: true
-      });
-      console.log('送出到試算表完成', res.type);
-    } catch (err) {
-      console.error('送出到試算表失敗（網路層）', err);
-    }
+  // ✅ 只要這一段，用這個完整覆蓋你原本的 sendOrderToSheet
+
+async function sendOrderToSheet(orderData) {
+  try {
+    const res = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'   // 告訴後端是 JSON（比較乾淨）
+      },
+      body: JSON.stringify(orderData)
+      // 🚫 不要再用 keepalive，因為有大圖會超過 64KB 直接 Failed to fetch
+    });
+
+    const text = await res.text();
+    console.log('Sheets 回應：', res.status, text);
+  } catch (err) {
+    console.error('送出到試算表失敗（網路層）', err);
   }
+}
 
   let currentStep = 1;
   const TOTAL_STEPS = 2;
@@ -685,7 +691,7 @@
       document.getElementById('btn-711').addEventListener('click', async () => {
         const orderData = buildOrderData('7-11 店到店');
         showLoading('前往 7-11 取貨設定中…');
-        await sendOrderToSheet(orderData);
+       await sendOrderToSheet(orderData);
 
         clearCart();
         window.location.href = 'https://myship.7-11.com.tw/cart/confirm/GM2511309292297';
